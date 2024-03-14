@@ -9,7 +9,7 @@ LOG_LEVEL_INFO=1
 LOG_LEVEL_DEBUG=2
 
 # Set the current log level
-CURRENT_LOG_LEVEL=$LOG_LEVEL_INFO
+CURRENT_LOG_LEVEL=$LOG_LEVEL_DEBUG
 
 # Logging functions
 info() {
@@ -100,6 +100,7 @@ interface_info() {
   info "lshw -C network"
   lshw -C network | nl
 
+  # TODO FIXME Remove
   # info "iwlist $INTERFACE scan"
   # iwlist $INTERFACE scan | nl
 
@@ -123,13 +124,7 @@ debug "SSL Key log file path set to $SSLKEYLOGFILE"
 while [ "$#" -gt 0 ]; do
   case "$1" in
   # individual commands
-  -find-intf | --find-network-interface-in-monitor-mode)
-    find_interface_in_monitor_mode
-    echo "Monitor mode interface: $MONITOR_MODE_INTERFACE"
-    exit 0
-    ;;
-
-  -find-ssid | --find-ssid-with-scan)
+  -ssid-find | --ssid-find-by-scan)
     shift
     INTERFACE=$1
     shift
@@ -161,18 +156,7 @@ while [ "$#" -gt 0 ]; do
     exit 0
     ;;
 
-  -reset-wlan | --reset-network-interface)
-    shift
-    INTERFACE=$1
-    shift
-    sudo ip link set $INTERFACE down
-    sudo systemctl restart NetworkManager
-    sudo iw dev $INTERFACE set type managed
-    sudo ip link set $INTERFACE up
-    exit 0
-    ;;
-
-  -ssh | --start-ssh)
+  -ssh | --ssh-start)
     shift
     info "Starting ssh..."
     sudo systemctl start ssh
@@ -180,9 +164,26 @@ while [ "$#" -gt 0 ]; do
     exit 0
     ;;
 
-  -wlan-info | --wlan-interface-info)
+  -wlan-find | --wlan-find-interface-in-monitor-mode)
+    find_interface_in_monitor_mode
+    echo "Monitor mode interface: $MONITOR_MODE_INTERFACE"
+    exit 0
+    ;;
+
+  -wlan-info | --wlan-info-interface)
     shift
     interface_info "$1"
+    exit 0
+    ;;
+
+  -wlan-reset | --wlan-reset-interface)
+    shift
+    INTERFACE=$1
+    shift
+    sudo ip link set $INTERFACE down
+    sudo systemctl restart NetworkManager
+    sudo iw dev $INTERFACE set type managed
+    sudo ip link set $INTERFACE up
     exit 0
     ;;
 
