@@ -37,6 +37,27 @@ error() {
 }
 
 # Function for parsing the command line arguments
+find_interface_in_monitor_mode() {
+  # Get all wireless interfaces
+  INTERFACES=$(iwconfig 2>/dev/null | grep 'wlan' | awk '{print $1}')
+
+  if [ -z "$INTERFACES" ]; then
+    info "No wlanX interfaces found."
+  else
+    info "Found the following wlanX interfaces:"
+    for INTERFACE in $INTERFACES; do
+      info $INTERFACE
+      # Check if the interface is in monitor mode
+      if iwconfig $INTERFACE | grep -q "Mode:Monitor"; then
+        info "$INTERFACE is in monitor mode."
+        MONITOR_MODE_INTERFACE=$INTERFACE
+        return
+      fi
+    done
+    info "No wlanX interfaces are in monitor mode."
+  fi
+}
+
 start_mitmproxy() {
   local MITMPROXY_OPTIONS=$1
   local MITMPROXY_AS_ROOT="" # todo fixme better structure to use sudo
@@ -75,6 +96,13 @@ debug "SSL Key log file path set to $SSLKEYLOGFILE"
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
+  # individual commands
+  -find-intf | --find-network-interface-in-monitor-mode)
+    find_interface_in_monitor_mode
+    echo "Monitor mode interface: $MONITOR_MODE_INTERFACE"
+    exit 0
+    ;;
+
   -mitmp | --mitmproxy-start)
     shift
     start_mitmproxy ""
