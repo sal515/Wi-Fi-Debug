@@ -81,6 +81,32 @@ start_wireshark() {
   nohup wireshark -o tls.keylog_file:$SSLKEYLOGFILE &>/dev/null &
 }
 
+interface_info() {
+  INTERFACE=$1
+  info "Running interface info commands for $INTERFACE..."
+
+  info "iwconfig $INTERFACE"
+  iwconfig $INTERFACE | nl
+
+  info "ip -s link show $INTERFACE"
+  ip -s link show $INTERFACE | nl
+
+  info "iw $INTERFACE info"
+  iw $INTERFACE info | nl
+
+  info "ethtool -i $INTERFACE"
+  ethtool -i $INTERFACE | nl
+
+  info "lshw -C network"
+  lshw -C network | nl
+
+  # info "iwlist $INTERFACE scan"
+  # iwlist $INTERFACE scan | nl
+
+  info "iw $INTERFACE scan"
+  sudo iw $INTERFACE scan | nl
+}
+
 # Default values
 if [ "$EUID" -eq 0 ]; then
   USER_USERNAME=$SUDO_USER
@@ -143,13 +169,19 @@ while [ "$#" -gt 0 ]; do
     exit 0
     ;;
 
+  -wlan-info | --wlan-interface-info)
+    shift
+    interface_info "$1"
+    exit 0
+    ;;
+
   -ws | --wireshark-start)
     shift
     start_wireshark "$1"
     exit 0
     ;;
 
-  # combined options
+  # combined commands
   -mitmp-insecure-ws | --mitmp-insecure-wireshark-startup)
     shift
     info "Setting up the sniffer..."
