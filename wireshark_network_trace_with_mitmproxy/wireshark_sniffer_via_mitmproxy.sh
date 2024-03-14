@@ -161,6 +161,17 @@ while [ "$#" -gt 0 ]; do
     exit 0
     ;;
 
+  -reset-wlan | --reset-network-interface)
+    shift
+    INTERFACE=$1
+    shift
+    sudo ip link set $INTERFACE down
+    sudo systemctl restart NetworkManager
+    sudo iw dev $INTERFACE set type managed
+    sudo ip link set $INTERFACE up
+    exit 0
+    ;;
+
   -ssh | --start-ssh)
     shift
     info "Starting ssh..."
