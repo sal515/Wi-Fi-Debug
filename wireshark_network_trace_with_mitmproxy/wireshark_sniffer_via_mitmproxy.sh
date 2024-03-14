@@ -9,7 +9,7 @@ LOG_LEVEL_INFO=1
 LOG_LEVEL_DEBUG=2
 
 # Set the current log level
-CURRENT_LOG_LEVEL=$LOG_LEVEL_DEBUG
+CURRENT_LOG_LEVEL=$LOG_LEVEL_INFO
 
 # Logging functions
 info() {
@@ -49,27 +49,27 @@ info "Script executed as $USER_USERNAME and USER_HOME=$USER_HOME"
 SSLKEYLOGFILE=$USER_HOME/Desktop/ssl_key_log.log
 debug "SSL Key log file path set to $SSLKEYLOGFILE"
 
+# Function for parsing the command line arguments
+start_mitmproxy() {
+  local MITMPROXY_OPTIONS=$1
+  info "Starting mitmproxy with options: $MITMPROXY_OPTIONS"
+  shift
+  if [ -n "$1" ]; then
+    SSLKEYLOGFILE=$1
+  fi
+  info "SSL Key log file path set to $SSLKEYLOGFILE"
+  sudo -u $USER_USERNAME setsid qterminal -e "bash -c 'sudo SSLKEYLOGFILE=$SSLKEYLOGFILE mitmproxy $MITMPROXY_OPTIONS; exec bash'" &
+}
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
   -mitmp | --mitmproxy-start)
-    info "Starting mitmproxy..."
-    shift
-    if [ -n "$1" ]; then
-      SSLKEYLOGFILE=$1
-    fi
-    info "SSL Key log file path set to $SSLKEYLOGFILE"
-    sudo -u $USER_USERNAME setsid qterminal -e "bash -c 'sudo SSLKEYLOGFILE=$SSLKEYLOGFILE mitmproxy; exec bash'" &
+    start_mitmproxy ""
     exit 0
     ;;
 
   -mitmp-insecure | --mitmproxy-start-insecure)
-    info "Starting mitmproxy ssl insecure..."
-    shift
-    if [ -n "$1" ]; then
-      SSLKEYLOGFILE=$1
-    fi
-    info "SSL Key log file path set to $SSLKEYLOGFILE"
-    sudo -u $USER_USERNAME setsid qterminal -e "bash -c 'sudo SSLKEYLOGFILE=$SSLKEYLOGFILE mitmproxy --ssl-insecure; exec bash'" &
+    start_mitmproxy "--ssl-insecure"
     exit 0
     ;;
 
