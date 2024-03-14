@@ -60,7 +60,6 @@ start_wireshark() {
   nohup wireshark -o tls.keylog_file:$SSLKEYLOGFILE &>/dev/null &
 }
 
-
 # Default values
 if [ "$EUID" -eq 0 ]; then
   USER_USERNAME=$SUDO_USER
@@ -74,15 +73,16 @@ info "Script executed as $USER_USERNAME and USER_HOME=$USER_HOME"
 SSLKEYLOGFILE=$USER_HOME/Desktop/ssl_key_log.log
 debug "SSL Key log file path set to $SSLKEYLOGFILE"
 
-
 while [ "$#" -gt 0 ]; do
   case "$1" in
   -mitmp | --mitmproxy-start)
+    shift
     start_mitmproxy ""
     exit 0
     ;;
 
   -mitmp-insecure | --mitmproxy-start-insecure)
+    shift
     start_mitmproxy "--ssl-insecure"
     exit 0
     ;;
@@ -94,8 +94,10 @@ while [ "$#" -gt 0 ]; do
     ;;
 
   -mitmp-insecure-ws | --mitmp-insecure-wireshark-startup)
-    # create a new terminal and call this script with the --mitmproxy-start option and then call this script with the --wireshark-start option to start the sniffer from the new terminal created
+    shift
     info "Setting up the sniffer..."
+    start_mitmproxy "--ssl-insecure"
+    start_wireshark "$1"
     exit 0
     ;;
 
