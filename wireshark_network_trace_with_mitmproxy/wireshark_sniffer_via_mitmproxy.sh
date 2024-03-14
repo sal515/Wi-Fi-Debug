@@ -93,6 +93,7 @@ while [ "$#" -gt 0 ]; do
     exit 0
     ;;
 
+  # combined options
   -mitmp-insecure-ws | --mitmp-insecure-wireshark-startup)
     shift
     info "Setting up the sniffer..."
