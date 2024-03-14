@@ -87,6 +87,14 @@ while [ "$#" -gt 0 ]; do
     exit 0
     ;;
 
+  -ssh | --start-ssh)
+    shift
+    info "Starting ssh..."
+    sudo systemctl start ssh
+    sudo systemctl status ssh
+    exit 0
+    ;;
+
   -ws | --wireshark-start)
     shift
     start_wireshark "$1"
