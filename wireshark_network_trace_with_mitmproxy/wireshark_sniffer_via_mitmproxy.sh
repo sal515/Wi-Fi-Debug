@@ -39,7 +39,8 @@ error() {
 # Function for parsing the command line arguments
 start_mitmproxy() {
   local MITMPROXY_OPTIONS=$1
-  local MITMPROXY_AS_ROOT=$2
+  local MITMPROXY_AS_ROOT="" # todo fixme better structure to use sudo
+  # local MITMPROXY_AS_ROOT=$2 # todo fixme better structure to use sudo
 
   info "Starting mitmproxy with options: $MITMPROXY_OPTIONS"
   shift
@@ -49,6 +50,16 @@ start_mitmproxy() {
   info "SSL Key log file path set to $SSLKEYLOGFILE"
   sudo -u $USER_USERNAME setsid qterminal -e "bash -c '$MITMPROXY_AS_ROOT SSLKEYLOGFILE=$SSLKEYLOGFILE mitmproxy $MITMPROXY_OPTIONS; exec bash'" &
 }
+
+start_wireshark() {
+  info "Starting wireshark and setting the tls.keylog_file..."
+  if [ -n "$1" ]; then
+    SSLKEYLOGFILE=$1
+  fi
+  info "SSL Key log file path set to $SSLKEYLOGFILE"
+  nohup wireshark -o tls.keylog_file:$SSLKEYLOGFILE &>/dev/null &
+}
+
 
 # Default values
 if [ "$EUID" -eq 0 ]; then
@@ -63,26 +74,22 @@ info "Script executed as $USER_USERNAME and USER_HOME=$USER_HOME"
 SSLKEYLOGFILE=$USER_HOME/Desktop/ssl_key_log.log
 debug "SSL Key log file path set to $SSLKEYLOGFILE"
 
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
   -mitmp | --mitmproxy-start)
-    start_mitmproxy "" ""
+    start_mitmproxy ""
     exit 0
     ;;
 
   -mitmp-insecure | --mitmproxy-start-insecure)
-    start_mitmproxy "--ssl-insecure" ""
+    start_mitmproxy "--ssl-insecure"
     exit 0
     ;;
 
   -ws | --wireshark-start)
-    info "Starting wireshark and setting the tls.keylog_file..."
     shift
-    if [ -n "$1" ]; then
-      SSLKEYLOGFILE=$1
-    fi
-    info "SSL Key log file path set to $SSLKEYLOGFILE"
-    nohup wireshark -o tls.keylog_file:$SSLKEYLOGFILE &>/dev/null &
+    start_wireshark "$1"
     exit 0
     ;;
 
