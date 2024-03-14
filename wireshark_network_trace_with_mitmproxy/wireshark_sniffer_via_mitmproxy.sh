@@ -103,6 +103,26 @@ while [ "$#" -gt 0 ]; do
     exit 0
     ;;
 
+  -find-ssid | --find-ssid-with-scan)
+    shift
+    INTERFACE=$1
+    shift
+    network_name=$1
+    shift
+    lines_before=${1:-30}
+    shift
+    lines_after=${1:-50}
+    shift
+    if [ -z "$network_name" ]; then
+      error "Error: Network name is required."
+      exit 1
+    fi
+    debug "Scanning for network $network_name on interface $INTERFACE... with $lines_before lines before and $lines_after lines after."
+    # sudo iwlist $INTERFACE scan | nl | grep -iE -B $lines_before -A $lines_after $network_name
+    sudo iw $INTERFACE scan | nl | grep -iE -B $lines_before -A $lines_after $network_name
+    exit 0
+    ;;
+
   -mitmp | --mitmproxy-start)
     shift
     start_mitmproxy ""
