@@ -36,6 +36,20 @@ error() {
   fi
 }
 
+# Function for parsing the command line arguments
+start_mitmproxy() {
+  local MITMPROXY_OPTIONS=$1
+  local MITMPROXY_AS_ROOT=$2
+
+  info "Starting mitmproxy with options: $MITMPROXY_OPTIONS"
+  shift
+  if [ -n "$1" ]; then
+    SSLKEYLOGFILE=$1
+  fi
+  info "SSL Key log file path set to $SSLKEYLOGFILE"
+  sudo -u $USER_USERNAME setsid qterminal -e "bash -c '$MITMPROXY_AS_ROOT SSLKEYLOGFILE=$SSLKEYLOGFILE mitmproxy $MITMPROXY_OPTIONS; exec bash'" &
+}
+
 # Default values
 if [ "$EUID" -eq 0 ]; then
   USER_USERNAME=$SUDO_USER
@@ -49,27 +63,15 @@ info "Script executed as $USER_USERNAME and USER_HOME=$USER_HOME"
 SSLKEYLOGFILE=$USER_HOME/Desktop/ssl_key_log.log
 debug "SSL Key log file path set to $SSLKEYLOGFILE"
 
-# Function for parsing the command line arguments
-start_mitmproxy() {
-  local MITMPROXY_OPTIONS=$1
-  info "Starting mitmproxy with options: $MITMPROXY_OPTIONS"
-  shift
-  if [ -n "$1" ]; then
-    SSLKEYLOGFILE=$1
-  fi
-  info "SSL Key log file path set to $SSLKEYLOGFILE"
-  sudo -u $USER_USERNAME setsid qterminal -e "bash -c 'sudo SSLKEYLOGFILE=$SSLKEYLOGFILE mitmproxy $MITMPROXY_OPTIONS; exec bash'" &
-}
-
 while [ "$#" -gt 0 ]; do
   case "$1" in
   -mitmp | --mitmproxy-start)
-    start_mitmproxy ""
+    start_mitmproxy "" ""
     exit 0
     ;;
 
   -mitmp-insecure | --mitmproxy-start-insecure)
-    start_mitmproxy "--ssl-insecure"
+    start_mitmproxy "--ssl-insecure" ""
     exit 0
     ;;
 
@@ -81,6 +83,12 @@ while [ "$#" -gt 0 ]; do
     fi
     info "SSL Key log file path set to $SSLKEYLOGFILE"
     nohup wireshark -o tls.keylog_file:$SSLKEYLOGFILE &>/dev/null &
+    exit 0
+    ;;
+
+  -mitmp-insecure-ws | --mitmp-insecure-wireshark-startup)
+    # create a new terminal and call this script with the --mitmproxy-start option and then call this script with the --wireshark-start option to start the sniffer from the new terminal created
+    info "Setting up the sniffer..."
     exit 0
     ;;
 
