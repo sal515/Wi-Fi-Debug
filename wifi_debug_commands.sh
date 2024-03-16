@@ -126,6 +126,38 @@ while [ "$#" -gt 0 ]; do
     exit 0
     ;;
 
+  -ws-bkup | --wireshark-start-backup)
+    # Example usage: wifidbg -ws-bkup "80211_tcpip" "/path/to/backup_dir"
+    # NOTE: If the git directory is mounted on VM and the script is on the VM,
+    # fatal: detected dubious ownership in repository at '/home/kali/wifi_debug'
+    # To add an exception for this directory, call:
+    # git config --global --add safe.directory /home/kali/wifi_debug
+    shift
+    profile_name=$1
+    [ -z "$profile_name" ] && error "Error: Profile name is empty" && exit 1
+    shift
+    backup_path_dir=$1
+    [ -z "$backup_path_dir" ] && error "Error: Backup path is empty" && exit 1
+    shift
+
+    wireshark_config_dir="$USER_HOME/.config/wireshark"
+    wireshark_profiles_dir="$wireshark_config_dir/profiles"
+    wireshark_profile_dfilters_path="$wireshark_profiles_dir/$profile_name/dfilters"
+    wireshark_profile_preferences_path="$wireshark_profiles_dir/$profile_name/preferences"
+    [ ! -f $wireshark_profile_dfilters_path ] &&
+      error "Error: File not found: $wireshark_profile_dfilters_path" &&
+      exit 1
+    [ ! -f $wireshark_profile_preferences_path ] &&
+      error "Error: File not found: $wireshark_profile_preferences_path" &&
+      exit 1
+
+    wireshark_config_backup_dir="$backup_path_dir/$profile_name"
+    [ ! -d "$wireshark_config_backup_dir" ] && mkdir -p "$wireshark_config_backup_dir"
+    cp $wireshark_profile_dfilters_path "$wireshark_config_backup_dir/dfilters"
+    cp $wireshark_profile_preferences_path "$wireshark_config_backup_dir/preferences"
+    exit 0
+    ;;
+
   # combined commands
   -setup | --setup-with-default)
     # Example usage: wifidbg -setup wlan0 "tp.*link" "insecure"
