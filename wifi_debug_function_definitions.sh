@@ -65,6 +65,43 @@ configure_wlan_interface() {
 # Function Definitions
 # ################################################################################
 
+backup_wireshark_config() {
+    local user_home="$1"
+    local profile_name="$2"
+    local backup_path_dir="$3"
+    
+    local wireshark_config_dir="$user_home/.config/wireshark"
+    local wireshark_profiles_dir="$wireshark_config_dir/profiles"
+    local wireshark_profile_dfilters_path="$wireshark_profiles_dir/$profile_name/dfilters"
+    local wireshark_profile_preferences_path="$wireshark_profiles_dir/$profile_name/preferences"
+
+    [ ! -f $wireshark_profile_dfilters_path ] &&
+        error "Error: File not found: $wireshark_profile_dfilters_path" &&
+        exit 1
+    [ ! -f $wireshark_profile_preferences_path ] &&
+        error "Error: File not found: $wireshark_profile_preferences_path" &&
+        exit 1
+
+    # NOTE: Example - To copy to the git repo directory
+    # NOTE: If the git directory is mounted on VM and the script is on the VM,
+    # fatal: detected dubious ownership in repository at '/home/kali/wifi_debug'
+    # To add an exception for this directory, call:
+    # git config --global --add safe.directory /home/kali/wifi_debug
+    # ==============================================================
+    # cd ${SCRIPT_DIR}"/"
+    # git_root_dir=$(git rev-parse --show-toplevel 2>/dev/null)
+    # if [ -z "$git_root_dir" ]; then
+    #   echo "Error: This script must be run in a Git repository"
+    #   exit 1
+    # fi
+    # wireshark_config_backup_dir="$git_root_dir/wireshark_config/$profile_name"
+
+    local wireshark_config_backup_dir="$backup_path_dir/$profile_name"
+    [ ! -d "$wireshark_config_backup_dir" ] && mkdir -p "$wireshark_config_backup_dir"
+    cp $wireshark_profile_dfilters_path "$wireshark_config_backup_dir/dfilters"
+    cp $wireshark_profile_preferences_path "$wireshark_config_backup_dir/preferences"
+}
+
 create_symbolic_link() {
     debug "Creating symbolic link [wifidbg] for this script..."
     if [ ! -L /usr/local/bin/wifidbg ]; then

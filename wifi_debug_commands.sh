@@ -128,10 +128,6 @@ while [ "$#" -gt 0 ]; do
 
   -ws-bkup | --wireshark-start-backup)
     # Example usage: wifidbg -ws-bkup "80211_tcpip" "/path/to/backup_dir"
-    # NOTE: If the git directory is mounted on VM and the script is on the VM,
-    # fatal: detected dubious ownership in repository at '/home/kali/wifi_debug'
-    # To add an exception for this directory, call:
-    # git config --global --add safe.directory /home/kali/wifi_debug
     shift
     profile_name=$1
     [ -z "$profile_name" ] && error "Error: Profile name is empty" && exit 1
@@ -139,31 +135,7 @@ while [ "$#" -gt 0 ]; do
     backup_path_dir=$1
     [ -z "$backup_path_dir" ] && error "Error: Backup path directory is empty" && exit 1
     shift
-
-    wireshark_config_dir="$USER_HOME/.config/wireshark"
-    wireshark_profiles_dir="$wireshark_config_dir/profiles"
-    wireshark_profile_dfilters_path="$wireshark_profiles_dir/$profile_name/dfilters"
-    wireshark_profile_preferences_path="$wireshark_profiles_dir/$profile_name/preferences"
-    [ ! -f $wireshark_profile_dfilters_path ] &&
-      error "Error: File not found: $wireshark_profile_dfilters_path" &&
-      exit 1
-    [ ! -f $wireshark_profile_preferences_path ] &&
-      error "Error: File not found: $wireshark_profile_preferences_path" &&
-      exit 1
-
-    # NOTE: Example - To copy to the git repo directory
-    # cd ${SCRIPT_DIR}"/"
-    # git_root_dir=$(git rev-parse --show-toplevel 2>/dev/null)
-    # if [ -z "$git_root_dir" ]; then
-    #   echo "Error: This script must be run in a Git repository"
-    #   exit 1
-    # fi
-    # wireshark_config_backup_dir="$git_root_dir/wireshark_config/$profile_name"
-
-    wireshark_config_backup_dir="$backup_path_dir/$profile_name"
-    [ ! -d "$wireshark_config_backup_dir" ] && mkdir -p "$wireshark_config_backup_dir"
-    cp $wireshark_profile_dfilters_path "$wireshark_config_backup_dir/dfilters"
-    cp $wireshark_profile_preferences_path "$wireshark_config_backup_dir/preferences"
+    backup_wireshark_config "$USER_HOME" $profile_name $backup_path_dir
     exit 0
     ;;
 
