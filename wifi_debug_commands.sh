@@ -115,14 +115,6 @@ while [ "$#" -gt 0 ]; do
     ;;
 
   # combined commands
-  -mitmp-insecure-ws | --mitmp-insecure-wireshark-startup)
-    shift
-    # info "Setting up the sniffer..."
-    # start_mitmproxy "--ssl-insecure"
-    # start_wireshark "$1"
-    exit 0
-    ;;
-
   -setup | --setup-with-default)
     # Example usage: wifidbg -setup wlan0 "tp.*link" "insecure"
     shift
