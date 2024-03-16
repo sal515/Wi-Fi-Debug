@@ -2,6 +2,12 @@
 # Constants
 # ################################################################################
 
+# ERROR CODES
+ERROR_CODE_SUCCESS=0
+ERROR_CODE_FAILURE=1
+ERROR_CODE_NO_DEVICE=2
+ERROR_CODE_NOT_FOUND=127
+
 # Log levels
 LOG_LEVEL_ERROR=0
 LOG_LEVEL_INFO=1
@@ -63,7 +69,7 @@ find_network() {
 
     if [ -z "$ssid_name_pattern" ]; then
         error "Error: SSID name pattern is required."
-        exit 1
+        exit $ERROR_CODE_FAILURE
     fi
 
     switch_wlan_interface_mode $interface managed
@@ -79,7 +85,7 @@ find_network() {
 
     if [ -z "$bss_blocks" ]; then
         error "Error: SSID $ssid_name_pattern not found."
-        exit 1
+        exit $ERROR_CODE_FAILURE
     fi
 
     SSID_NAME=$(echo "$bss_blocks" |
@@ -95,22 +101,22 @@ find_network() {
 
 find_wlan_interface_in_monitor_mode() {
     # Get all wireless interfaces
-    INTERFACES=$(iwconfig 2>/dev/null | grep 'wlan' | awk '{print $1}')
+    local interfaces=$(iwconfig 2>/dev/null | grep 'wlan' | awk '{print $1}')
 
-    if [ -z "$INTERFACES" ]; then
-        info "No wlan interfaces found."
+    if [ -z "$interfaces" ]; then
+        return $ERROR_CODE_NO_DEVICE
     else
-        info "Found the following wlan interfaces:"
-        for INTERFACE in $INTERFACES; do
-            info $INTERFACE
+        debug "Found the following wlan interfaces:"
+        for interface in $interfaces; do
+            debug $interface
             # Check if the interface is in monitor mode
-            if iwconfig $INTERFACE | grep -iEq "Mode.*Monitor"; then
-                debug "$INTERFACE is in monitor mode."
-                MONITOR_MODE_INTERFACE=$INTERFACE
+            if iwconfig $interface | grep -iEq "Mode.*Monitor"; then
+                debug "$interface is in monitor mode."
+                MONITOR_MODE_INTERFACE=$interface
                 return
             fi
         done
-        info "No wlan interface in monitor mode."
+        return $ERROR_CODE_NOT_FOUND
     fi
 }
 

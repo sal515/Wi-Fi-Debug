@@ -75,7 +75,14 @@ while [ "$#" -gt 0 ]; do
 
   -wlan-find | --wlan-find-interface-in-monitor-mode)
     find_wlan_interface_in_monitor_mode
-    info "wlan interface in Monitor mode: $MONITOR_MODE_INTERFACE"
+    if [ "$?" -eq $ERROR_CODE_NOT_FOUND ]; then
+      info "No wlan interface found in Monitor mode"
+      exit 1
+    elif [ "$?" -eq $ERROR_CODE_NO_DEVICE ]; then
+      info "No wlan interfaces found"
+      exit 1
+    fi
+    info "wlan interface found in Monitor mode: $MONITOR_MODE_INTERFACE"
     exit 0
     ;;
 
