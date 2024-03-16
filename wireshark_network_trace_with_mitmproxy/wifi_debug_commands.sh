@@ -14,6 +14,7 @@ source $SCRIPT_FUNCTION_DEFINITIONS_PATH
 # CURRENT_LOG_LEVEL=$LOG_LEVEL_DEBUG
 CURRENT_LOG_LEVEL=$LOG_LEVEL_INFO
 
+# TODO FIXME
 info "Creating symbolic link [wifidbg] for this script..."
 create_symbolic_link &&
   info "[wifidbg] symbol for this script is available system wide" ||
@@ -41,9 +42,7 @@ while [ "$#" -gt 0 ]; do
     shift
     ssl_key_log_file=${1:-$SSLKEYLOGFILE}
     shift
-
     info "Starting mitmproxy with options: $mitmproxy_ssl_insecure_option SSLKeyFile: $ssl_key_log_file USER: $USER_USERNAME"
-
     start_mitmproxy $USER_USERNAME $ssl_key_log_file $mitmproxy_ssl_insecure_option
     exit 0
     ;;
@@ -105,7 +104,6 @@ while [ "$#" -gt 0 ]; do
     shift
     ssl_key_log_file=${1:-$SSLKEYLOGFILE}
     shift
-
     info "Starting wireshark and setting the tls.keylog_file=$ssl_key_log_file"
     start_wireshark "$ssl_key_log_file"
     exit 0
@@ -114,9 +112,9 @@ while [ "$#" -gt 0 ]; do
   # combined commands
   -mitmp-insecure-ws | --mitmp-insecure-wireshark-startup)
     shift
-    info "Setting up the sniffer..."
-    start_mitmproxy "--ssl-insecure"
-    start_wireshark "$1"
+    # info "Setting up the sniffer..."
+    # start_mitmproxy "--ssl-insecure"
+    # start_wireshark "$1"
     exit 0
     ;;
 
