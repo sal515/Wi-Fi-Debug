@@ -1,21 +1,20 @@
 #!/bin/bash
-# NOTE: Run this script with bash shell. It will not work with sh shell.
+# NOTE: Run this script with bash shell. It will NOT work with sh shell.
 # Example: bash wireshark_sniffer_via_mitmproxy.sh
-
-# include the other bash script with the function definitions
 
 SCRIPT_PATH="$(readlink -f "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
-FUNCTION_DEFINITIONS_PATH="${SCRIPT_DIR}/wifi_debug_function_definitions.sh"
-if [ ! -f "$FUNCTION_DEFINITIONS_PATH" ]; then
-  echo "Error: File not found: $FUNCTION_DEFINITIONS_PATH"
+SCRIPT_FUNCTION_DEFINITIONS_PATH="${SCRIPT_DIR}/wifi_debug_function_definitions.sh"
+if [ ! -f "$SCRIPT_FUNCTION_DEFINITIONS_PATH" ]; then
+  echo "Error: File not found: $SCRIPT_FUNCTION_DEFINITIONS_PATH"
   exit 1
 fi
-source $FUNCTION_DEFINITIONS_PATH
+source $SCRIPT_FUNCTION_DEFINITIONS_PATH
 
 # CURRENT_LOG_LEVEL=$LOG_LEVEL_DEBUG
 CURRENT_LOG_LEVEL=$LOG_LEVEL_INFO
 
+# Create a symbolic link for this script if not already created
 create_symbolic_link
 
 # Default values
@@ -26,9 +25,9 @@ else
   USER_USERNAME=$USER
   USER_HOME=$HOME
 fi
-info "Script executed as $USER_USERNAME and USER_HOME=$USER_HOME"
-
 SSLKEYLOGFILE=$USER_HOME/Desktop/ssl_key_log.log
+
+info "Script executed as $USER_USERNAME and USER_HOME=$USER_HOME"
 debug "SSL Key log file path set to $SSLKEYLOGFILE"
 
 while [ "$#" -gt 0 ]; do
