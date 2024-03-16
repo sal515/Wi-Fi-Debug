@@ -36,13 +36,14 @@ while [ "$#" -gt 0 ]; do
   # individual commands
   -mitmp | --mitmproxy-start)
     shift
-    start_mitmproxy ""
-    exit 0
-    ;;
-
-  -mitmp-insecure | --mitmproxy-start-insecure)
+    [ "$1" = "insecure" ] && mitmproxy_ssl_insecure_option="--ssl-insecure" || mitmproxy_ssl_insecure_option=${1:-""}
     shift
-    start_mitmproxy "--ssl-insecure"
+    ssl_key_log_file=${1:-$SSLKEYLOGFILE}
+    shift
+
+    info "Starting mitmproxy with options: $mitmproxy_ssl_insecure_option SSLKeyFile: $ssl_key_log_file USER: $USER_USERNAME"
+
+    start_mitmproxy $USER_USERNAME $ssl_key_log_file $mitmproxy_ssl_insecure_option
     exit 0
     ;;
 

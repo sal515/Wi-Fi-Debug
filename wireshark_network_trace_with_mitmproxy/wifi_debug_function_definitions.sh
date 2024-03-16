@@ -150,16 +150,14 @@ interface_info() {
 }
 
 start_mitmproxy() {
-    local MITMPROXY_OPTIONS=$1
-    local MITMPROXY_AS_ROOT="" # todo fixme better structure to use sudo
-    # local MITMPROXY_AS_ROOT=$2 # todo fixme better structure to use sudo
-    info "Starting mitmproxy with options: $MITMPROXY_OPTIONS"
+    local username=$1
     shift
-    if [ -n "$1" ]; then
-        SSLKEYLOGFILE=$1
-    fi
-    info "SSL Key log file path set to $SSLKEYLOGFILE"
-    sudo -u $USER_USERNAME setsid qterminal -e "bash -c '$MITMPROXY_AS_ROOT SSLKEYLOGFILE=$SSLKEYLOGFILE mitmproxy $MITMPROXY_OPTIONS; exec bash'" &
+    local ssl_key_log_file=$1
+    shift
+    local mitmproxy_ssl_insecure_option=$1
+    shift
+    local mitmproxy_as_root="" # todo fixme better structure to use sudo
+    sudo -u ${username} setsid qterminal -e "bash -c '$mitmproxy_as_root SSLKEYLOGFILE=$ssl_key_log_file mitmproxy $mitmproxy_ssl_insecure_option; exec bash'" &
 }
 
 start_ssh_service() {
