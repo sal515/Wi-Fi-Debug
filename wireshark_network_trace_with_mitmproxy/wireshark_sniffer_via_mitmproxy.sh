@@ -2,111 +2,21 @@
 # NOTE: Run this script with bash shell. It will not work with sh shell.
 # Example: bash wireshark_sniffer_via_mitmproxy.sh
 
-# Logging functions
-# Log levels
-LOG_LEVEL_ERROR=0
-LOG_LEVEL_INFO=1
-LOG_LEVEL_DEBUG=2
+# include the other bash script with the function definitions
 
-# Set the current log level
-CURRENT_LOG_LEVEL=$LOG_LEVEL_DEBUG
+SCRIPT_PATH="$(readlink -f "$0")"
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+FUNCTION_DEFINITIONS_PATH="${SCRIPT_DIR}/wifi_debug_function_definitions.sh"
+if [ ! -f "$FUNCTION_DEFINITIONS_PATH" ]; then
+  echo "Error: File not found: $FUNCTION_DEFINITIONS_PATH"
+  exit 1
+fi
+source $FUNCTION_DEFINITIONS_PATH
 
-# Logging functions
-info() {
-  if [ $CURRENT_LOG_LEVEL -ge $LOG_LEVEL_INFO ]; then
-    local MESSAGE=$1
-    local TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-    echo "${TIMESTAMP} INFO ${MESSAGE}"
-  fi
-}
+# CURRENT_LOG_LEVEL=$LOG_LEVEL_DEBUG
+CURRENT_LOG_LEVEL=$LOG_LEVEL_INFO
 
-debug() {
-  if [ $CURRENT_LOG_LEVEL -ge $LOG_LEVEL_DEBUG ]; then
-    local MESSAGE=$1
-    local TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-    echo "${TIMESTAMP} DEBUG ${MESSAGE}"
-  fi
-}
-
-error() {
-  if [ $CURRENT_LOG_LEVEL -ge $LOG_LEVEL_ERROR ]; then
-    local MESSAGE=$1
-    local TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-    echo "${TIMESTAMP} ERROR ${MESSAGE}" >&2
-  fi
-}
-
-# Function for parsing the command line arguments
-find_interface_in_monitor_mode() {
-  # Get all wireless interfaces
-  INTERFACES=$(iwconfig 2>/dev/null | grep 'wlan' | awk '{print $1}')
-
-  if [ -z "$INTERFACES" ]; then
-    info "No wlanX interfaces found."
-  else
-    info "Found the following wlanX interfaces:"
-    for INTERFACE in $INTERFACES; do
-      info $INTERFACE
-      # Check if the interface is in monitor mode
-      if iwconfig $INTERFACE | grep -q "Mode:Monitor"; then
-        info "$INTERFACE is in monitor mode."
-        MONITOR_MODE_INTERFACE=$INTERFACE
-        return
-      fi
-    done
-    info "No wlanX interfaces are in monitor mode."
-  fi
-}
-
-start_mitmproxy() {
-  local MITMPROXY_OPTIONS=$1
-  local MITMPROXY_AS_ROOT="" # todo fixme better structure to use sudo
-  # local MITMPROXY_AS_ROOT=$2 # todo fixme better structure to use sudo
-
-  info "Starting mitmproxy with options: $MITMPROXY_OPTIONS"
-  shift
-  if [ -n "$1" ]; then
-    SSLKEYLOGFILE=$1
-  fi
-  info "SSL Key log file path set to $SSLKEYLOGFILE"
-  sudo -u $USER_USERNAME setsid qterminal -e "bash -c '$MITMPROXY_AS_ROOT SSLKEYLOGFILE=$SSLKEYLOGFILE mitmproxy $MITMPROXY_OPTIONS; exec bash'" &
-}
-
-start_wireshark() {
-  info "Starting wireshark and setting the tls.keylog_file..."
-  if [ -n "$1" ]; then
-    SSLKEYLOGFILE=$1
-  fi
-  info "SSL Key log file path set to $SSLKEYLOGFILE"
-  nohup wireshark -o tls.keylog_file:$SSLKEYLOGFILE &>/dev/null &
-}
-
-interface_info() {
-  INTERFACE=$1
-  info "Running interface info commands for $INTERFACE..."
-
-  info "iwconfig $INTERFACE"
-  iwconfig $INTERFACE | nl
-
-  info "ip -s link show $INTERFACE"
-  ip -s link show $INTERFACE | nl
-
-  info "iw $INTERFACE info"
-  iw $INTERFACE info | nl
-
-  info "ethtool -i $INTERFACE"
-  ethtool -i $INTERFACE | nl
-
-  info "lshw -C network"
-  lshw -C network | nl
-
-  # TODO FIXME Remove
-  # info "iwlist $INTERFACE scan"
-  # iwlist $INTERFACE scan | nl
-
-  info "iw $INTERFACE scan"
-  sudo iw $INTERFACE scan | nl
-}
+create_symbolic_link
 
 # Default values
 if [ "$EUID" -eq 0 ]; then
