@@ -31,47 +31,18 @@ info "Script executed as $USER_USERNAME and USER_HOME=$USER_HOME"
 SSLKEYLOGFILE=$USER_HOME/Desktop/ssl_key_log.log
 debug "SSL Key log file path set to $SSLKEYLOGFILE"
 
-PRESERVE_GREP_COLOR="--color=always"
-SSID_SEARCH_GREP_DEFAULT_LINES_BEFORE=30
-SSID_SEARCH_GREP_DEFAULT_LINES_AFTER=50
-
 while [ "$#" -gt 0 ]; do
   case "$1" in
   # individual commands
+  # TODO FIXME refactor into function for reuse?
   -ssid-find | --ssid-find-by-scan)
     shift
-    INTERFACE=$1
+    interface=$1
     shift
-    network_name_pattern=$1
+    ssid_name=$1
     shift
-    lines_before=${1:-$SSID_SEARCH_GREP_DEFAULT_LINES_BEFORE}
-    shift
-    lines_after=${1:-$SSID_SEARCH_GREP_DEFAULT_LINES_AFTER}
-    shift
-
-    if [ -z "$network_name_pattern" ]; then
-      error "Error: Network name is required."
-      exit 1
-    fi
-
-    debug "Scanning for network $network_name_pattern on interface $INTERFACE... with $lines_before lines before and $lines_after lines after."
-
-    SCAN_OUTPUT=$(sudo iw "$INTERFACE" scan)
-    debug "SCAN_OUTPUT: $SCAN_OUTPUT"
-
-    NETWORK_NAME_BLOCK=$(echo "$SCAN_OUTPUT" | grep $PRESERVE_GREP_COLOR -iE -B 5 -A 5 "$network_name_pattern" | grep $PRESERVE_GREP_COLOR -iE -B 5 -A 5 "SSID")
-    debug "NETWORK_NAME_BLOCK: $NETWORK_NAME_BLOCK"
-
-    NETWORK_NAME=$(echo "$NETWORK_NAME_BLOCK" | grep $PRESERVE_GREP_COLOR -oiE "SSID.*" | awk '{print $2}')
-
-    CHANNEL=$(echo "$NETWORK_NAME_BLOCK" | grep $PRESERVE_GREP_COLOR -oiE "channel.*" | awk '{print $2}')
-
-    if [ -z "$CHANNEL" ] || [ -z "$NETWORK_NAME" ]; then
-      error "Error: Network $network_name_pattern not found or invalid channel."
-      exit 1
-    fi
-
-    info "Network with SSID: $NETWORK_NAME found on channel: $CHANNEL"
+    find_network $interface $ssid_name
+    info "SSID: $SSID_NAME Channel: $SSID_CHANNEL"
     exit 0
     ;;
 
