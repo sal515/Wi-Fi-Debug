@@ -36,6 +36,7 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
   # individual commands
   -mitmp | --mitmproxy-start)
+    # Example usage: wifidbg -mitmproxy-start "insecure" /path/to/ssl_key_log.log
     shift
     [ "$1" = "insecure" ] && mitmproxy_ssl_insecure_option="--ssl-insecure" ||
       mitmproxy_ssl_insecure_option=${1:-""}
@@ -48,6 +49,7 @@ while [ "$#" -gt 0 ]; do
     ;;
 
   -ssh | --ssh-start)
+    # Example usage: wifidbg -ssh-start
     shift
     info "Starting ssh..."
     start_ssh_service
@@ -55,6 +57,7 @@ while [ "$#" -gt 0 ]; do
     ;;
 
   -ssh-service | --ssh-service-status)
+    # Example usage: wifidbg -ssh-service
     shift
     info "Enable ssh service..."
     enable_ssh_service
@@ -62,17 +65,21 @@ while [ "$#" -gt 0 ]; do
     ;;
 
   -ssid-find | --ssid-find-by-scan)
+    # Example usage: wifidbg -ssid-find wlan0 "tp.*link"
     shift
     interface=$1
     shift
     ssid_name=$1
     shift
+    [ -z "$interface" ] && error "Error: Interface name is empty" && exit 1
+    [ -z "$ssid_name" ] && error "Error: SSID name is empty" && exit 1
     find_ssid_channel $interface $ssid_name
     info "SSID: $SSID_NAME Channel: $SSID_CHANNEL"
     exit 0
     ;;
 
   -wlan-find | --wlan-find-interface-in-monitor-mode)
+    # Example usage: wifidbg -wlan-find
     shift
     find_wlan_interface_in_monitor_mode
     if [ "$?" -eq $ERROR_CODE_NOT_FOUND ]; then
@@ -87,18 +94,22 @@ while [ "$#" -gt 0 ]; do
     ;;
 
   -wlan-info | --wlan-info-interface)
+    # Example usage: wifidbg -wlan-info wlan0
     shift
-    wlan_all_info "$1"
+    interface=${1:-"wlan0"}
+    shift
+    wlan_all_info $interface
     exit 0
     ;;
 
   -wlan-reset | --wlan-reset-interface)
+    # Example usage: wifidbg -wlan-reset wlan0 monitor 4
     shift
     interface=${1:-"wlan0"}
     shift
     mode=${1:-"monitor"}
     shift
-    channel=${1:--1}
+    channel=$1
     shift
     configure_wlan_interface $interface $mode $channel
     wlan_iw_info $interface
@@ -106,6 +117,7 @@ while [ "$#" -gt 0 ]; do
     ;;
 
   -ws | --wireshark-start)
+    # Example usage: wifidbg -ws /path/to/ssl_key_log.log
     shift
     ssl_key_log_file=${1:-$SSLKEYLOGFILE}
     shift
@@ -119,8 +131,10 @@ while [ "$#" -gt 0 ]; do
     # Example usage: wifidbg -setup wlan0 "tp.*link" "insecure"
     shift
     interface=$1
+    [ -z "$interface" ] && error "Error: Interface name is empty" && exit 1
     shift
     ssid_name=$1
+    [ -z "$ssid_name" ] && error "Error: SSID name is empty" && exit 1
     shift
     [ "$1" = "insecure" ] && mitmproxy_ssl_insecure_option="--ssl-insecure" ||
       mitmproxy_ssl_insecure_option=${1:-""}
