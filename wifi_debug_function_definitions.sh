@@ -50,12 +50,12 @@ error() {
 # Internal functions
 # ################################################################################
 
-# TODO FIXME
 configure_wlan_interface() {
     local interface=${1:-"wlan0"}
     local mode=${2:-"monitor"}
     local channel=${3:--1}
     sudo ip link set $interface down
+    # sudo systemctl restart NetworkManager
     [ $channel -ge 0 ] && sudo iw dev $interface set channel $channel || :
     sudo iw dev $interface set type $mode
     sudo ip link set $interface up
@@ -136,7 +136,14 @@ find_wlan_interface_in_monitor_mode() {
     fi
 }
 
-wlan_info() {
+wlan_iw_info() {
+    local interface=$1
+    shift
+    info "iw $interface info"
+    iw $interface info | nl
+}
+
+wlan_all_info() {
     local interface=$1
     shift
     if [ -z "$interface" ]; then
@@ -156,8 +163,7 @@ wlan_info() {
     info "ip -s link show $interface"
     ip -s link show $interface | nl
 
-    info "iw $interface info"
-    iw $interface info | nl
+    wlan_iw_info $interface
 
     info "ethtool -i $interface"
     ethtool -i $interface | nl
@@ -197,7 +203,6 @@ start_wireshark() {
     nohup wireshark -o tls.keylog_file:$ssl_key_log_file &>/dev/null &
 }
 
-# TODO FIXME
 setup_interface_in_monitor_mode() {
     local interface=$1
     shift
@@ -205,5 +210,5 @@ setup_interface_in_monitor_mode() {
     shift
     configure_wlan_interface $interface "monitor" $channel
     # sudo systemctl restart NetworkManager
-    iw $interface info | nl
+    wlan_iw_info $interface
 }

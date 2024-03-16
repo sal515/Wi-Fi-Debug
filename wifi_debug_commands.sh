@@ -88,16 +88,20 @@ while [ "$#" -gt 0 ]; do
 
   -wlan-info | --wlan-info-interface)
     shift
-    wlan_info "$1"
+    wlan_all_info "$1"
     exit 0
     ;;
 
-  # TODO FIXME
   -wlan-reset | --wlan-reset-interface)
     shift
-    interface=$1
+    interface=${1:-"wlan0"}
     shift
-    setup_interface_in_monitor_mode $interface
+    mode=${1:-"monitor"}
+    shift
+    channel=${1:--1}
+    shift
+    configure_wlan_interface $interface $mode $channel
+    wlan_iw_info $interface
     exit 0
     ;;
 
