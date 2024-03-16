@@ -69,7 +69,7 @@ backup_wireshark_config() {
     local user_home="$1"
     local profile_name="$2"
     local backup_path_dir="$3"
-    
+
     local wireshark_config_dir="$user_home/.config/wireshark"
     local wireshark_profiles_dir="$wireshark_config_dir/profiles"
     local wireshark_profile_dfilters_path="$wireshark_profiles_dir/$profile_name/dfilters"
@@ -148,8 +148,6 @@ find_ssid_channel() {
     SSID_CHANNEL=$(echo "$bss_blocks" |
         awk 'BEGIN{IGNORECASE=1} /DS Parameter set: channel/{print $5}' | tr -d ' ')
     debug "SSID_CHANNEL: $SSID_CHANNEL"
-
-    configure_wlan_interface $interface monitor
 }
 
 find_wlan_interface_in_monitor_mode() {
