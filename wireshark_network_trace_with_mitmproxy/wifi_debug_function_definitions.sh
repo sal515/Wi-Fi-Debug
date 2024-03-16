@@ -24,26 +24,37 @@ PRESERVE_GREP_COLOR="--color=always"
 
 info() {
     if [ $CURRENT_LOG_LEVEL -ge $LOG_LEVEL_INFO ]; then
-        local MESSAGE=$1
-        local TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-        echo "${TIMESTAMP} INFO ${MESSAGE}"
+        local message=$1
+        local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+        echo "${timestamp} INFO ${message}"
     fi
 }
 
 debug() {
     if [ $CURRENT_LOG_LEVEL -ge $LOG_LEVEL_DEBUG ]; then
-        local MESSAGE=$1
-        local TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-        echo "${TIMESTAMP} DEBUG ${MESSAGE}"
+        local message=$1
+        local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+        echo "${timestamp} DEBUG ${message}"
     fi
 }
 
 error() {
     if [ $CURRENT_LOG_LEVEL -ge $LOG_LEVEL_ERROR ]; then
-        local MESSAGE=$1
-        local TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-        echo "${TIMESTAMP} ERROR ${MESSAGE}" >&2
+        local message=$1
+        local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+        echo "${timestamp} ERROR ${message}" >&2
     fi
+}
+
+# ################################################################################
+# Internal functions
+# ################################################################################
+switch_wlan_interface_mode() {
+    local interface=$1
+    local mode=$2
+    sudo ip link set $interface down
+    sudo iw dev $interface set type $mode
+    sudo ip link set $interface up
 }
 
 # ################################################################################
@@ -121,37 +132,44 @@ find_wlan_interface_in_monitor_mode() {
 }
 
 interface_info() {
-    INTERFACE=$1
-    if [ -z "$INTERFACE" ]; then
+    local interface=$1
+    shift
+    if [ -z "$interface" ]; then
         error "Error: Interface not found."
         exit 1
     fi
+    info "Running interface info commands for $interface..."
 
-    info "Running interface info commands for $INTERFACE..."
+    read -p "Do you want to clear the terminal? (y/n) " -n 1 -r
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        clear
+    fi
 
-    info "iwconfig $INTERFACE"
-    iwconfig $INTERFACE | nl
+    info "iwconfig $interface"
+    iwconfig $interface | nl
 
-    info "ip -s link show $INTERFACE"
-    ip -s link show $INTERFACE | nl
+    info "ip -s link show $interface"
+    ip -s link show $interface | nl
 
-    info "iw $INTERFACE info"
-    iw $INTERFACE info | nl
+    info "iw $interface info"
+    iw $interface info | nl
 
-    info "ethtool -i $INTERFACE"
-    ethtool -i $INTERFACE | nl
+    info "ethtool -i $interface"
+    ethtool -i $interface | nl
 
     info "lshw -C network"
     sudo lshw -C network | nl
 
-    # TODO FIXME Remove
-    # info "iwlist $INTERFACE scan"
-    # iwlist $INTERFACE scan | nl
+    sleep 3
 
-    info "iw $INTERFACE scan"
-    sudo iw dev $INTERFACE set type managed
-    sudo iw $INTERFACE scan | nl
-    sudo iw dev $INTERFACE set type monitor
+    # Ask user if network scan should be performed?
+    read -p "Do you want to perform a network scan? (y/n) " -n 1 -r
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        info "iw $interface scan"
+        switch_wlan_interface_mode $interface managed
+        sudo iw $interface scan | nl
+        switch_wlan_interface_mode $interface monitor
+    fi
 
 }
 
@@ -180,10 +198,9 @@ start_wireshark() {
     nohup wireshark -o tls.keylog_file:$SSLKEYLOGFILE &>/dev/null &
 }
 
-switch_wlan_interface_mode() {
-    INTERFACE=$1
-    MODE=$2
-    sudo ip link set $INTERFACE down
-    sudo iw dev $INTERFACE set type $MODE
-    sudo ip link set $INTERFACE up
+setup_interface_in_monitor_mode() {
+    local interface=$1
+    switch_wlan_interface_mode $interface "monitor"
+    # sudo systemctl restart NetworkManager
+    iw $interface info | nl
 }

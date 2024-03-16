@@ -94,12 +94,9 @@ while [ "$#" -gt 0 ]; do
 
   -wlan-reset | --wlan-reset-interface)
     shift
-    INTERFACE=$1
+    interface=$1
     shift
-    sudo ip link set $INTERFACE down
-    sudo systemctl restart NetworkManager
-    sudo iw dev $INTERFACE set type managed
-    sudo ip link set $INTERFACE up
+    setup_interface_in_monitor_mode $interface
     exit 0
     ;;
 
