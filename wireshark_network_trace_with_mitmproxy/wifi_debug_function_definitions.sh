@@ -188,12 +188,8 @@ start_ssh_service() {
 }
 
 start_wireshark() {
-    info "Starting wireshark and setting the tls.keylog_file..."
-    if [ -n "$1" ]; then
-        SSLKEYLOGFILE=$1
-    fi
-    info "SSL Key log file path set to $SSLKEYLOGFILE"
-    nohup wireshark -o tls.keylog_file:$SSLKEYLOGFILE &>/dev/null &
+    local ssl_key_log_file=$1
+    nohup wireshark -o tls.keylog_file:$ssl_key_log_file &>/dev/null &
 }
 
 setup_interface_in_monitor_mode() {

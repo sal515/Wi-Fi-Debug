@@ -103,7 +103,11 @@ while [ "$#" -gt 0 ]; do
 
   -ws | --wireshark-start)
     shift
-    start_wireshark "$1"
+    ssl_key_log_file=${1:-$SSLKEYLOGFILE}
+    shift
+
+    info "Starting wireshark and setting the tls.keylog_file=$ssl_key_log_file"
+    start_wireshark "$ssl_key_log_file"
     exit 0
     ;;
 
