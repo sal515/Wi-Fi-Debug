@@ -1,6 +1,6 @@
 #!/bin/bash
 # NOTE: Run this script with bash shell. It will NOT work with sh shell.
-# Example: bash wireshark_sniffer_via_mitmproxy.sh
+# Example: bash wifi_debug/wifi_debug_commands.sh
 
 SCRIPT_PATH="$(readlink -f "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
@@ -11,11 +11,10 @@ if [ ! -f "$SCRIPT_FUNCTION_DEFINITIONS_PATH" ]; then
 fi
 source $SCRIPT_FUNCTION_DEFINITIONS_PATH
 
+# TODO FIXME
 # CURRENT_LOG_LEVEL=$LOG_LEVEL_DEBUG
 CURRENT_LOG_LEVEL=$LOG_LEVEL_INFO
 
-# TODO FIXME
-info "Creating symbolic link [wifidbg] for this script..."
 create_symbolic_link &&
   info "[wifidbg] symbol for this script is available system wide" ||
   error "Error: Failed to create symbolic link"

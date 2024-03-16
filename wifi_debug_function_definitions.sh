@@ -66,6 +66,7 @@ configure_wlan_interface() {
 # ################################################################################
 
 create_symbolic_link() {
+    debug "Creating symbolic link [wifidbg] for this script..."
     if [ ! -L /usr/local/bin/wifidbg ]; then
         sudo ln -s $(realpath $0) /usr/local/bin/wifidbg
         return $? # return the exit status of the last command
