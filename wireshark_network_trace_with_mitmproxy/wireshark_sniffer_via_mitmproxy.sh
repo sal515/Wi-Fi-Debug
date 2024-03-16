@@ -14,8 +14,10 @@ source $SCRIPT_FUNCTION_DEFINITIONS_PATH
 # CURRENT_LOG_LEVEL=$LOG_LEVEL_DEBUG
 CURRENT_LOG_LEVEL=$LOG_LEVEL_INFO
 
-# Create a symbolic link for this script if not already created
-create_symbolic_link
+info "Creating symbolic link [wifidbg] for this script..."
+create_symbolic_link &&
+  info "[wifidbg] symbol for this script is available system wide" ||
+  error "Error: Failed to create symbolic link"
 
 # Default values
 if [ "$EUID" -eq 0 ]; then

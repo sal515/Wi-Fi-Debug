@@ -46,10 +46,10 @@ error() {
 
 create_symbolic_link() {
     if [ ! -L /usr/local/bin/wifidbg ]; then
-        info "Creating symbolic link [wifidbg] for this script..."
         sudo ln -s $(realpath $0) /usr/local/bin/wifidbg
+        return $? # return the exit status of the last command
     fi
-    info "[wifidbg] symbol for this script is available system wide"
+    return 0
 }
 
 enable_ssh_service() {
