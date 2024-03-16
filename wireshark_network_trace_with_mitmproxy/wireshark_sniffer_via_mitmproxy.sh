@@ -34,18 +34,6 @@ debug "SSL Key log file path set to $SSLKEYLOGFILE"
 while [ "$#" -gt 0 ]; do
   case "$1" in
   # individual commands
-  # TODO FIXME refactor into function for reuse?
-  -ssid-find | --ssid-find-by-scan)
-    shift
-    interface=$1
-    shift
-    ssid_name=$1
-    shift
-    find_network $interface $ssid_name
-    info "SSID: $SSID_NAME Channel: $SSID_CHANNEL"
-    exit 0
-    ;;
-
   -mitmp | --mitmproxy-start)
     shift
     start_mitmproxy ""
@@ -61,14 +49,31 @@ while [ "$#" -gt 0 ]; do
   -ssh | --ssh-start)
     shift
     info "Starting ssh..."
-    sudo systemctl start ssh
-    sudo systemctl status ssh
+    start_ssh_service
+    exit 0
+    ;;
+
+  -ssh-service | --ssh-service-status)
+    shift
+    info "Enable ssh service..."
+    enable_ssh_service
+    exit 0
+    ;;
+
+  -ssid-find | --ssid-find-by-scan)
+    shift
+    interface=$1
+    shift
+    ssid_name=$1
+    shift
+    find_network $interface $ssid_name
+    info "SSID: $SSID_NAME Channel: $SSID_CHANNEL"
     exit 0
     ;;
 
   -wlan-find | --wlan-find-interface-in-monitor-mode)
-    find_interface_in_monitor_mode
-    echo "Monitor mode interface: $MONITOR_MODE_INTERFACE"
+    find_wlan_interface_in_monitor_mode
+    info "wlan interface in Monitor mode: $MONITOR_MODE_INTERFACE"
     exit 0
     ;;
 
