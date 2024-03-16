@@ -38,7 +38,8 @@ while [ "$#" -gt 0 ]; do
   # individual commands
   -mitmp | --mitmproxy-start)
     shift
-    [ "$1" = "insecure" ] && mitmproxy_ssl_insecure_option="--ssl-insecure" || mitmproxy_ssl_insecure_option=${1:-""}
+    [ "$1" = "insecure" ] && mitmproxy_ssl_insecure_option="--ssl-insecure" ||
+      mitmproxy_ssl_insecure_option=${1:-""}
     shift
     ssl_key_log_file=${1:-$SSLKEYLOGFILE}
     shift
@@ -92,6 +93,7 @@ while [ "$#" -gt 0 ]; do
     exit 0
     ;;
 
+  # TODO FIXME
   -wlan-reset | --wlan-reset-interface)
     shift
     interface=$1
@@ -115,6 +117,38 @@ while [ "$#" -gt 0 ]; do
     # info "Setting up the sniffer..."
     # start_mitmproxy "--ssl-insecure"
     # start_wireshark "$1"
+    exit 0
+    ;;
+
+  -setup | --setup-with-default)
+    # Example usage: wifidbg -setup wlan0 "tp.*link" "insecure"
+    shift
+    interface=$1
+    shift
+    ssid_name=$1
+    shift
+    [ "$1" = "insecure" ] && mitmproxy_ssl_insecure_option="--ssl-insecure" ||
+      mitmproxy_ssl_insecure_option=${1:-""}
+    shift
+    ssl_key_log_file=${1:-$SSLKEYLOGFILE}
+    shift
+
+    find_ssid_channel $interface $ssid_name
+    info "Setting up the sniffer environment..."
+    read -p "Do you want to set the channel to $SSID_CHANNEL used by SSID: $SSID_NAME? (y/n) " -n 1 -r
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      setup_interface_in_monitor_mode $interface $SSID_CHANNEL
+    else
+      read -p "Enter the channel number for SSID: $SSID_NAME: " -n 2 -r
+      MANUAL_SSID_CHANNEL=$REPLY
+      setup_interface_in_monitor_mode $interface $MANUAL_SSID_CHANNEL
+    fi
+
+    info "Starting mitmproxy with options: $mitmproxy_ssl_insecure_option SSLKeyFile:$ssl_key_log_file USER: $USER_USERNAME"
+    start_mitmproxy $USER_USERNAME $ssl_key_log_file $mitmproxy_ssl_insecure_option
+
+    info "Starting wireshark and setting the tls.keylog_file=$ssl_key_log_file"
+    start_wireshark "$ssl_key_log_file"
     exit 0
     ;;
 

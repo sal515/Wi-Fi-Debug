@@ -49,10 +49,14 @@ error() {
 # ################################################################################
 # Internal functions
 # ################################################################################
-switch_wlan_interface_mode() {
-    local interface=$1
-    local mode=$2
+
+# TODO FIXME
+configure_wlan_interface() {
+    local interface=${1:-"wlan0"}
+    local mode=${2:-"monitor"}
+    local channel=${3:--1}
     sudo ip link set $interface down
+    [ $channel -ge 0 ] && sudo iw dev $interface set channel $channel || :
     sudo iw dev $interface set type $mode
     sudo ip link set $interface up
 }
@@ -83,7 +87,7 @@ find_ssid_channel() {
         exit $ERROR_CODE_FAILURE
     fi
 
-    switch_wlan_interface_mode $interface managed
+    configure_wlan_interface $interface managed
 
     debug "Scanning for SSID $ssid_name_pattern on interface $interface..."
 
@@ -107,7 +111,7 @@ find_ssid_channel() {
         awk 'BEGIN{IGNORECASE=1} /DS Parameter set: channel/{print $5}' | tr -d ' ')
     debug "SSID_CHANNEL: $SSID_CHANNEL"
 
-    switch_wlan_interface_mode $interface monitor
+    configure_wlan_interface $interface monitor
 }
 
 find_wlan_interface_in_monitor_mode() {
@@ -165,9 +169,9 @@ wlan_info() {
     read -p "Do you want to perform a network scan? (y/n) " -n 1 -r
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         info "iw $interface scan"
-        switch_wlan_interface_mode $interface managed
+        configure_wlan_interface $interface managed
         sudo iw $interface scan | nl
-        switch_wlan_interface_mode $interface monitor
+        configure_wlan_interface $interface monitor
     fi
 }
 
@@ -192,9 +196,13 @@ start_wireshark() {
     nohup wireshark -o tls.keylog_file:$ssl_key_log_file &>/dev/null &
 }
 
+# TODO FIXME
 setup_interface_in_monitor_mode() {
     local interface=$1
-    switch_wlan_interface_mode $interface "monitor"
+    shift
+    local channel=$1
+    shift
+    configure_wlan_interface $interface "monitor" $channel
     # sudo systemctl restart NetworkManager
     iw $interface info | nl
 }
