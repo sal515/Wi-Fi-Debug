@@ -137,7 +137,7 @@ while [ "$#" -gt 0 ]; do
     [ -z "$profile_name" ] && error "Error: Profile name is empty" && exit 1
     shift
     backup_path_dir=$1
-    [ -z "$backup_path_dir" ] && error "Error: Backup path is empty" && exit 1
+    [ -z "$backup_path_dir" ] && error "Error: Backup path directory is empty" && exit 1
     shift
 
     wireshark_config_dir="$USER_HOME/.config/wireshark"
@@ -150,6 +150,15 @@ while [ "$#" -gt 0 ]; do
     [ ! -f $wireshark_profile_preferences_path ] &&
       error "Error: File not found: $wireshark_profile_preferences_path" &&
       exit 1
+
+    # NOTE: Example - To copy to the git repo directory
+    # cd ${SCRIPT_DIR}"/"
+    # git_root_dir=$(git rev-parse --show-toplevel 2>/dev/null)
+    # if [ -z "$git_root_dir" ]; then
+    #   echo "Error: This script must be run in a Git repository"
+    #   exit 1
+    # fi
+    # wireshark_config_backup_dir="$git_root_dir/wireshark_config/$profile_name"
 
     wireshark_config_backup_dir="$backup_path_dir/$profile_name"
     [ ! -d "$wireshark_config_backup_dir" ] && mkdir -p "$wireshark_config_backup_dir"
