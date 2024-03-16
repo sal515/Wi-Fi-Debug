@@ -74,7 +74,7 @@ enable_ssh_service() {
     sudo systemctl status ssh
 }
 
-find_network() {
+find_ssid_channel() {
     local interface=$1
     local ssid_name_pattern=$2
 
@@ -131,7 +131,7 @@ find_wlan_interface_in_monitor_mode() {
     fi
 }
 
-interface_info() {
+wlan_info() {
     local interface=$1
     shift
     if [ -z "$interface" ]; then
@@ -162,7 +162,6 @@ interface_info() {
 
     sleep 3
 
-    # Ask user if network scan should be performed?
     read -p "Do you want to perform a network scan? (y/n) " -n 1 -r
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         info "iw $interface scan"
@@ -170,7 +169,6 @@ interface_info() {
         sudo iw $interface scan | nl
         switch_wlan_interface_mode $interface monitor
     fi
-
 }
 
 start_mitmproxy() {

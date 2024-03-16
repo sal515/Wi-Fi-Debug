@@ -68,12 +68,13 @@ while [ "$#" -gt 0 ]; do
     shift
     ssid_name=$1
     shift
-    find_network $interface $ssid_name
+    find_ssid_channel $interface $ssid_name
     info "SSID: $SSID_NAME Channel: $SSID_CHANNEL"
     exit 0
     ;;
 
   -wlan-find | --wlan-find-interface-in-monitor-mode)
+    shift
     find_wlan_interface_in_monitor_mode
     if [ "$?" -eq $ERROR_CODE_NOT_FOUND ]; then
       info "No wlan interface found in Monitor mode"
@@ -88,7 +89,7 @@ while [ "$#" -gt 0 ]; do
 
   -wlan-info | --wlan-info-interface)
     shift
-    interface_info "$1"
+    wlan_info "$1"
     exit 0
     ;;
 
