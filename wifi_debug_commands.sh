@@ -73,8 +73,9 @@ while [ "$#" -gt 0 ]; do
     shift
     [ -z "$interface" ] && error "Error: Interface name is empty" && exit 1
     [ -z "$ssid_name" ] && error "Error: SSID name is empty" && exit 1
-    find_ssid_channel $interface $ssid_name
-    info "SSID: $SSID_NAME Channel: $SSID_CHANNEL"
+
+    find_ssid_channel_using_airodump_ng $interface $SCRIPT_DIR
+    info "SSID: $SSID Channel: $CHANNEL"
     exit 0
     ;;
 
@@ -155,14 +156,16 @@ while [ "$#" -gt 0 ]; do
     ssl_key_log_file=${1:-$SSLKEYLOGFILE}
     shift
 
-    find_ssid_channel $interface $ssid_name
+    find_ssid_channel_using_airodump_ng $interface $SCRIPT_DIR
+    info "SSID: $SSID Channel: $CHANNEL"
+
     sleep 3
     info "Setting up the sniffer environment..."
-    read -p "Do you want to set the channel to $SSID_CHANNEL used by SSID: $SSID_NAME? (y/n) " -n 1 -r
+    read -p "Do you want to set the channel to $CHANNEL used by SSID: $SSID? (y/n) " -n 1 -r
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-      setup_interface_in_monitor_mode $interface $SSID_CHANNEL
+      setup_interface_in_monitor_mode $interface $CHANNEL
     else
-      read -p "Enter the channel number for SSID: $SSID_NAME: " -n 2 -r
+      read -p "Enter the channel number for SSID: $ssid_name: " -n 2 -r
       MANUAL_SSID_CHANNEL=$REPLY
       setup_interface_in_monitor_mode $interface $MANUAL_SSID_CHANNEL
     fi
@@ -170,7 +173,6 @@ while [ "$#" -gt 0 ]; do
     sleep 3
     info "Starting mitmproxy with options: $mitmproxy_ssl_insecure_option SSLKeyFile:$ssl_key_log_file USER: $USER_USERNAME"
     start_mitmproxy $USER_USERNAME $ssl_key_log_file $mitmproxy_ssl_insecure_option
-
 
     info "Starting wireshark and setting the tls.keylog_file=$ssl_key_log_file"
     start_wireshark "$ssl_key_log_file"

@@ -55,10 +55,12 @@ configure_wlan_interface() {
     local mode=${2:-"monitor"}
     local channel=${3:--1}
     sudo ip link set $interface down
-    # sudo systemctl restart NetworkManager
     [ $channel -ge 0 ] && sudo iw dev $interface set channel $channel || :
     sudo iw dev $interface set type $mode
     sudo ip link set $interface up
+    # sleep 2
+    # sudo systemctl restart NetworkManager
+
 }
 
 # ################################################################################
@@ -114,6 +116,21 @@ create_symbolic_link() {
 enable_ssh_service() {
     sudo systemctl enable ssh
     sudo systemctl status ssh
+}
+
+find_ssid_channel_using_airodump_ng() {
+    local interface=$1
+    shift
+    local script_dir=$1
+    shift
+    local output_dir="$script_dir/airodump_log"
+    local log_format="kismet"
+    [ -d "$output_dir" ] && rm -rf $output_dir
+    mkdir -p $output_dir
+
+    sudo airodump-ng --output-format $log_format -w "$output_dir/airodumplog" $interface
+    SSID=$(grep -iE "tp.*link" "$output_dir/airodumplog-01.kismet.csv" | awk -F ';' '{print $3}')
+    CHANNEL=$(grep -iE "tp.*link" "$output_dir/airodumplog-01.kismet.csv" | awk -F ';' '{print $6}')
 }
 
 find_ssid_channel() {
