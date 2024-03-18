@@ -160,6 +160,7 @@ while [ "$#" -gt 0 ]; do
     info "SSID: $SSID Channel: $CHANNEL"
 
     sleep 3
+
     info "Setting up the sniffer environment..."
     read -p "Do you want to set the channel to $CHANNEL used by SSID: $SSID? (y/n) " -n 1 -r
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -174,6 +175,7 @@ while [ "$#" -gt 0 ]; do
     info "Starting mitmproxy with options: $mitmproxy_ssl_insecure_option SSLKeyFile:$ssl_key_log_file USER: $USER_USERNAME"
     start_mitmproxy $USER_USERNAME $ssl_key_log_file $mitmproxy_ssl_insecure_option
 
+    sleep 3
     info "Starting wireshark and setting the tls.keylog_file=$ssl_key_log_file"
     start_wireshark "$ssl_key_log_file"
     exit 0

@@ -54,13 +54,40 @@ configure_wlan_interface() {
     local interface=${1:-"wlan0"}
     local mode=${2:-"monitor"}
     local channel=${3:--1}
-    sudo ip link set $interface down
-    [ $channel -ge 0 ] && sudo iw dev $interface set channel $channel || :
-    sudo iw dev $interface set type $mode
-    sudo ip link set $interface up
-    # sleep 2
-    # sudo systemctl restart NetworkManager
 
+    local iw_dev_interface_info_output=$(iw dev $interface info)
+    local current_mode=$(echo "$iw_dev_interface_info_output" | grep -i "type" | awk '{print $2}')
+    local current_channel=$(echo "$iw_dev_interface_info_output" | grep -i "channel" | awk '{print $2}')
+
+    info "Current Config of interface $interface - Mode: $current_mode Channel: $current_channel"
+
+    local update_mode=false
+    local update_channel=false
+
+    [ "$mode" != "$current_mode" ] && update_mode=true
+    [ "$channel" -ge 0 ] && [ "$channel" != "$current_channel" ] && update_channel=true
+
+    if [[ "$update_mode" = true || "$update_channel" = true ]]; then
+        debug "Setting interface $interface down..."
+        sudo ip link set $interface down
+    fi
+
+    [ "$update_mode" = true ] && debug "Setting interface $interface mode to $mode..." &&
+        sudo iw dev $interface set type $mode
+
+    [ "$update_channel" = true ] && debug "Setting interface $interface channel to $channel..." &&
+        sudo iw dev $interface set channel $channel
+
+    if [[ "$update_mode" = true || "$update_channel" = true ]]; then
+        debug "Setting interface $interface up..."
+        sudo ip link set $interface up
+    fi
+
+    # [ $channel -ge 0 ] && sudo iw dev $interface set channel $channel || :
+    # # sudo iw dev $interface set type $mode
+    # sudo ip link set $interface up
+    # # sleep 2
+    # # sudo systemctl restart NetworkManager
 }
 
 # ################################################################################
@@ -223,15 +250,14 @@ wlan_all_info() {
     info "lshw -C network"
     sudo lshw -C network | nl
 
-    sleep 3
-
-    read -p "Do you want to perform a network scan? (y/n) " -n 1 -r
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        info "iw $interface scan"
-        configure_wlan_interface $interface managed
-        sudo iw $interface scan | nl
-        configure_wlan_interface $interface monitor
-    fi
+    # sleep 3
+    # read -p "Do you want to perform a network scan? (y/n) " -n 1 -r
+    # if [[ $REPLY =~ ^[Yy]$ ]]; then
+    #     info "iw $interface scan"
+    #     configure_wlan_interface $interface managed
+    #     sudo iw $interface scan | nl
+    #     configure_wlan_interface $interface monitor
+    # fi
 }
 
 start_mitmproxy() {
