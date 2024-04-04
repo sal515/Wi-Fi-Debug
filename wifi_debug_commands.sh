@@ -186,45 +186,11 @@ while [ "$#" -gt 0 ]; do
     shift
     ssh_public_key=$1
     [ -z "$ssh_public_key" ] && error "Error: SSH public key is empty" && exit 1
-
     ssh_authorized_keys_filepath="/home/$USER_USERNAME/.ssh/authorized_keys"
     sshd_config_filepath="/etc/ssh/sshd_config"
-
-    if [ ! -f "$ssh_authorized_keys_filepath" ]; then
-      touch $ssh_authorized_keys_filepath || {
-        error "Failed to create SSH authorized keys file"
-        exit 1
-      }
-    fi
-
-    if grep -q "^#PubkeyAuthentication" "$sshd_config_filepath"; then
-      debug "PubkeyAuthentication is commented out" && { grep "^#PubkeyAuthentication" "$sshd_config_filepath"; }
-      info "PubkeyAuthentication is uncommented" && sudo sed -i 's/^#PubkeyAuthentication/PubkeyAuthentication/' "$sshd_config_filepath"
-    fi
-
-    if grep -q "^PubkeyAuthentication no" "$sshd_config_filepath"; then
-      debug "PubkeyAuthentication is set to no" && { grep "^PubkeyAuthentication no" "$sshd_config_filepath"; }
-      info "PubkeyAuthentication is set to yes" && sudo sed -i 's/^PubkeyAuthentication no/PubkeyAuthentication yes/' "$sshd_config_filepath"
-    fi
-
-    if grep -q "^#AuthorizedKeysFile" "$sshd_config_filepath"; then
-      debug "AuthorizedKeysFile is commented out" && { grep "^#PubkeyAuthentication" "$sshd_config_filepath"; }
-      info "AuthorizedKeysFile is uncommented" && sudo sed -i 's/^#AuthorizedKeysFile/AuthorizedKeysFile/' "$sshd_config_filepath"
-    fi
-
-    if grep -Fq "$ssh_public_key" "$ssh_authorized_keys_filepath"; then
-      echo "The SSH public key already exists in the authorized_keys file"
-    else
-      echo "The SSH public key does not exist in the authorized_keys file"
-      echo "$ssh_public_key" >>$ssh_authorized_keys_filepath
-
-    fi
-    sudo systemctl restart ssh
-
-    #debug
-    authorized_key_file_content=$(cat $ssh_authorized_keys_filepath)
-    debug "$authorized_key_file_content"
+    setup_ssh_pub_key_usage_and_append_pub_ssh_key $ssh_authorized_keys_filepath $sshd_config_filepath $ssh_public_key
     ;;
+
   --) # end argument parsing
     shift
     break
