@@ -191,6 +191,57 @@ while [ "$#" -gt 0 ]; do
     setup_ssh_pub_key_usage_and_append_pub_ssh_key $ssh_authorized_keys_filepath $sshd_config_filepath $ssh_public_key
     ;;
 
+  -rpi-wlan-conn-info | --rpi-show-wlan-connection-related_info_show)
+    shift
+    color_en="--color=always"
+
+    read -p "Do you want to clear the terminal? (y/n) " -n 1 -r
+    [[ $REPLY =~ ^[Yy]$ ]] && clear || echo ""
+
+    info "--->OS release<---" $BLUE
+    lsb_release -a
+
+    info "--->Print system logs [dmesg] - with MediaTek keyword<---" $BLUE
+    dmesg | grep "$color_en" -iE "MediaTek"
+    info "--->Print system logs [dmesg] - with firmware keyword<---" $BLUE
+    dmesg | grep "$color_en" -iE "fiwmware"
+    info "--->Print system logs [dmesg] - with mt7921u keyword<---" $BLUE
+    dmesg | grep "$color_en" -iE "mt"
+
+    info "--->lsusb with grep<---" $BLUE
+    lsusb | grep "$color_en" -iE wireless || lsusb
+    info "--->lspci<---" $BLUE
+    lspci
+    info "--->lsusb -t with grep<---" $BLUE
+    lsusb -t | grep "$color_en" -iE driver
+
+    # View the devices connected to the wlanX interface
+    wlan_interfaces=($(ls /sys/class/net/ | grep -iE '^wlan'))
+    for interface in "${wlan_interfaces[@]}"; do
+      device_path="/sys/class/net/${interface}/device"
+      info "--->view "${interface}" interface connected device - readlink -f "$device_path"<---" $BLUE
+      readlink -f "$device_path"
+    done
+
+    info "--->iw list<---" $BLUE
+    iw list | grep "$color_en" -E 'phy[0-9]+'
+    info "--->iw dev<---" $BLUE
+    iw dev
+
+    info "--->nmcli device status<---" $BLUE
+    nmcli d status
+
+    info "--->nmcli connection show<---" $BLUE
+    nmcli c show
+
+    info "--->ip link<---" $BLUE
+    ip link
+    info "--->iwconfig<---" $BLUE
+    iwconfig
+    info "--->ifconfig<---" $BLUE
+    ifconfig
+
+    ;;
   --) # end argument parsing
     shift
     break
