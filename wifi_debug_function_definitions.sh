@@ -22,27 +22,40 @@ PRESERVE_GREP_COLOR="--color=always"
 # Logging functions
 # ################################################################################
 
+# Define color variables
+RED='\e[31m'
+GREEN='\e[32m'
+YELLOW='\e[33m'
+BLUE='\e[34m'
+MAGENTA='\e[35m'
+CYAN='\e[36m'
+WHITE='\e[37m'
+RESET='\e[0m'
+
 info() {
     if [ $CURRENT_LOG_LEVEL -ge $LOG_LEVEL_INFO ]; then
         local message=$1
+        local color=$2
         local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
-        echo "${timestamp} INFO ${message}"
+        echo -e "${timestamp} INFO ${color}${message}\e[0m"
     fi
 }
 
 debug() {
     if [ $CURRENT_LOG_LEVEL -ge $LOG_LEVEL_DEBUG ]; then
         local message=$1
+        local color=$2
         local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
-        echo "${timestamp} DEBUG ${message}"
+        echo -e "${timestamp} DEBUG ${color}${message}\e[0m"
     fi
 }
 
 error() {
     if [ $CURRENT_LOG_LEVEL -ge $LOG_LEVEL_ERROR ]; then
         local message=$1
+        local color=$2
         local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
-        echo "${timestamp} ERROR ${message}" >&2
+        echo -e "${timestamp} ERROR ${color}${message}\e[0m" >&2
     fi
 }
 
