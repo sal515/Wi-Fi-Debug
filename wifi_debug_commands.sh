@@ -242,6 +242,30 @@ while [ "$#" -gt 0 ]; do
     ifconfig
 
     ;;
+
+    # TODO FIXME WIP - NOT TESTED - DO NOT DELETE - Update the network Connection using nmcli - supported after RPI Debian GNU/Linux 12 (bookworm)
+    # TODO List:
+    # 1. Identify the WLAN that is external adatper
+    # 2. Provide the WLAN interfaces as an option to the user to choose from
+    # 3. Create a new connection for the SSID with the selected WLAN interface
+    # 4. Modify the new connection to use WPA PSK and provide Password in the file not CLI for security reasons
+    # 5. Set the connection to autoconnect and make the file 700 executable
+    # 6. Remove the preconfigured connection from the undesired WLAN interface by setting it to autoconnect no
+    # -rpi-wlan-conn-setup | --rpi-wlan-connection-create-set-to-autostart-linked-to-wlan-interface)
+    # ls -lah /etc/NetworkManager/system-connections/
+    # nmcli c show
+    # nmcli c show "preconfigured"
+    # sudo nmcli c add type wifi con-name "TP-Link_2293_RPI_BUILT_IN" ifname wlan0 ssid "TP-Link_2293"
+    # sudo nmcli c modify "TP-Link_2293_RPI_BUILT_IN" wifi-sec.key-mgmt wpa-psk
+    # ask to update the PSK in the nmconnection file?
+    # sudo nano /etc/NetworkManager/system-connections/TP-Link_2293_RPI_BUILT_IN.nmconnection
+    # sudo chmod 700 "/etc/NetworkManager/system-connections/TP-Link_2293_RPI_BUILT_IN.nmconnection"
+    # sudo nmcli c mod "TP-Link_2293_RPI_BUILT_IN" autoconnect yes
+    # ls -lah /etc/NetworkManager/system-connections/
+    # nmcli c show "TP-Link_2293_RPI_BUILT_IN"
+    # sudo nmcli c mod "preconfigured" autoconnect no
+    #   ;;
+
   --) # end argument parsing
     shift
     break
