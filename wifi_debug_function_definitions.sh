@@ -80,7 +80,9 @@ configure_wlan_interface() {
     [ "$mode" != "$current_mode" ] && update_mode=true
     [ "$channel" -ge 0 ] && [ "$channel" != "$current_channel" ] && update_channel=true
 
-    if [[ "$update_mode" = true || "$update_channel" = true ]]; then
+    # TODO FIXME
+    # if [[ "$update_mode" = true || "$update_channel" = true ]]; then
+    if [[ "$update_mode" = true ]]; then
         debug "Setting interface $interface down..."
         sudo ip link set $interface down
     fi
@@ -162,6 +164,8 @@ enable_ssh_service() {
 find_ssid_channel_using_airodump_ng() {
     local interface=$1
     shift
+    local ssid_name_pattern=$1
+    shift
     local script_dir=$1
     shift
     local output_dir="$script_dir/airodump_log"
@@ -170,8 +174,8 @@ find_ssid_channel_using_airodump_ng() {
     mkdir -p $output_dir
 
     sudo airodump-ng --output-format $log_format -w "$output_dir/airodumplog" $interface
-    SSID=$(grep -iE "tp.*link" "$output_dir/airodumplog-01.kismet.csv" | awk -F ';' '{print $3}')
-    CHANNEL=$(grep -iE "tp.*link" "$output_dir/airodumplog-01.kismet.csv" | awk -F ';' '{print $6}')
+    SSID=$(grep -iE "${ssid_name_pattern}" "$output_dir/airodumplog-01.kismet.csv" | awk -F ';' '{print $3}')
+    CHANNEL=$(grep -iE "${ssid_name_pattern}" "$output_dir/airodumplog-01.kismet.csv" | awk -F ';' '{print $6}')
 }
 
 find_ssid_channel() {
@@ -305,6 +309,7 @@ setup_interface_in_monitor_mode() {
     wlan_iw_info $interface
 }
 
+# todo fixme ordering the functions
 setup_ssh_pub_key_usage_and_append_pub_ssh_key() {
     ssh_authorized_keys_filepath=$1
     sshd_config_filepath=$2

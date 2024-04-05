@@ -69,12 +69,12 @@ while [ "$#" -gt 0 ]; do
     shift
     interface=$1
     shift
-    ssid_name=$1
+    ssid_name_pattern=$1
     shift
     [ -z "$interface" ] && error "Error: Interface name is empty" && exit 1
     [ -z "$ssid_name" ] && error "Error: SSID name is empty" && exit 1
 
-    find_ssid_channel_using_airodump_ng $interface $SCRIPT_DIR
+    find_ssid_channel_using_airodump_ng $interface $ssid_name_pattern $SCRIPT_DIR
     info "SSID: $SSID Channel: $CHANNEL"
     exit 0
     ;;
@@ -147,7 +147,7 @@ while [ "$#" -gt 0 ]; do
     interface=$1
     [ -z "$interface" ] && error "Error: Interface name is empty" && exit 1
     shift
-    ssid_name=$1
+    ssid_name_pattern=$1
     [ -z "$ssid_name" ] && error "Error: SSID name is empty" && exit 1
     shift
     [ "$1" = "insecure" ] && mitmproxy_ssl_insecure_option="--ssl-insecure" ||
@@ -156,7 +156,7 @@ while [ "$#" -gt 0 ]; do
     ssl_key_log_file=${1:-$SSLKEYLOGFILE}
     shift
 
-    find_ssid_channel_using_airodump_ng $interface $SCRIPT_DIR
+    find_ssid_channel_using_airodump_ng $interface $ssid_name_pattern $SCRIPT_DIR
     info "SSID: $SSID Channel: $CHANNEL"
 
     sleep 3
@@ -192,8 +192,44 @@ while [ "$#" -gt 0 ]; do
     ;;
 
   -rpi-wlan-conn-info | --rpi-show-wlan-connection-related_info_show)
+    # Example usage: wifidbg -rpi-wlan-conn-info
     shift
     rpi_wlan_interface_info
+    ;;
+
+  -rpi-wlan-set-mon-ch | --rpi-wlan-set-monitor-mode-and-channel)
+    # Example usage: wifidbg -rpi-wlan-set-mon-ch "wlan1" "tp.*link"
+    shift
+    wlan_interface=$1
+    shift
+    ssid_name_pattern=$1
+    shift
+    [ -z "$wlan_interface" ] && error "Error: WLAN interface is empty" && exit 1
+    if ! which airodump-ng >/dev/null; then
+      read -p "airodump-ng is not installed. Do you want to install it? (y/n) " -n 1 -r
+      if [[ $REPLY =~ ^[Yy]$ ]]; then
+        sudo apt-get install aircrack-ng
+      else
+        error "Error: airodump-ng is required to set the monitor mode"
+        exit 1
+      fi
+    fi
+
+    find_ssid_channel_using_airodump_ng $wlan_interface $ssid_name_pattern $SCRIPT_DIR
+    info "SSID: "$SSID" Channel: "$CHANNEL""
+    sleep 3
+    setup_interface_in_monitor_mode $wlan_interface $CHANNEL
+
+    # ask the user if they want to install tshark?
+    if ! which tshark >/dev/null; then
+      read -p "tshark is not installed. Do you want to install it? (y/n) " -n 1 -r
+      if [[ $REPLY =~ ^[Yy]$ ]]; then
+        sudo apt-get install tshark
+      else
+        error "Error: tshark is required to capture packets"
+        exit 1
+      fi
+    fi
     ;;
 
     # TODO FIXME WIP - NOT TESTED - DO NOT DELETE - Update the network Connection using nmcli - supported after RPI Debian GNU/Linux 12 (bookworm)
