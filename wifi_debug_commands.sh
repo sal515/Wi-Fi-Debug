@@ -232,6 +232,19 @@ while [ "$#" -gt 0 ]; do
     fi
     ;;
 
+    # TODO FIXME: Set the priority of the connections (wlan0 vs eth0 or others)
+    # Show the connection available
+    # nmcli c show
+    # Show details of the connection
+    # nmcli c show "Wired connection 1"
+    # nmcli c show "TP-Link_2293_RPI_BUILT_IN"
+    # Set the connection priority - Higher number is higher priority for autoconnect-priority during startup
+    # sudo nmcli c modify "Wired connection 1" connection.autoconnect-priority 1 
+    # -rpi-set-conn-prio | --rpi-wlan-connection-create-set-to-autostart-linked-to-wlan-interface)
+
+
+
+
     # TODO FIXME WIP - NOT TESTED - DO NOT DELETE - Update the network Connection using nmcli - supported after RPI Debian GNU/Linux 12 (bookworm)
     # TODO List:
     # 1. Identify the WLAN that is external adatper
