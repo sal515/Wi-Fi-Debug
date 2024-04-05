@@ -232,6 +232,18 @@ while [ "$#" -gt 0 ]; do
     fi
     ;;
 
+  -rpi-wlan-discon | --rpi-wlan-disconnect)
+    # Example usage: wifidbg -rpi-wlan-disconnect "wlan1"
+    shift
+    wlan_interface=$1
+    [ -z "$wlan_interface" ] && error "Error: WLAN interface is empty" && exit 1
+    nmcli d status
+    info "Disconnecting the WLAN interface: $wlan_interface" 
+    sudo nmcli device disconnect $wlan_interface
+    info "Disconnected the WLAN interface: $wlan_interface"
+    nmcli d status
+    ;;
+
     # TODO FIXME: Set the priority of the connections (wlan0 vs eth0 or others)
     # Show the connection available
     # nmcli c show
