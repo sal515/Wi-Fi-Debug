@@ -27,12 +27,12 @@ else
   USER_USERNAME=$USER
   USER_HOME=$HOME
 fi
-SSLKEYLOGFILE=$USER_HOME/Desktop/ssl_key_log.log
-
 info "Script executed as $USER_USERNAME and USER_HOME=$USER_HOME"
+
 RPI_SHARE="rpi_share"
 PATH_TO_RPI_SHARE_DIR=$USER_HOME/"$RPI_SHARE"
 
+SSLKEYLOGFILE=$PATH_TO_RPI_SHARE_DIR/ssl_key_log.log
 debug "SSL Key log file path set to $SSLKEYLOGFILE"
 
 while [ "$#" -gt 0 ]; do
