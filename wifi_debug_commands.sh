@@ -39,15 +39,28 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
   # individual commands
   -mitmp | --mitmproxy-start)
-    # Example usage: wifidbg -mitmproxy-start "insecure" /path/to/ssl_key_log.log
+    # Example usage: wifidbg -mitmp "insecure" 8888 true /path/to/ssl_key_log.log
     shift
     [ "$1" = "insecure" ] && mitmproxy_ssl_insecure_option="--ssl-insecure" ||
       mitmproxy_ssl_insecure_option=${1:-""}
-    shift
-    ssl_key_log_file=${1:-$SSLKEYLOGFILE}
-    shift
+    listen_port=${2:-"8888"}
+    use_cli_mode=${3:-"false"}
+    ssl_key_log_file=${4:-$SSLKEYLOGFILE}
+
+    debug "mitmproxy_ssl_insecure_option: $mitmproxy_ssl_insecure_option, use_cli_mode: $use_cli_mode, ssl_key_log_file: $ssl_key_log_file"
+
+    if ! which mitmproxy >/dev/null; then
+      read -p "mitmproxy is not installed. Do you want to install it? (y/n) " -n 1 -r
+      if [[ $REPLY =~ ^[Yy]$ ]]; then
+        sudo apt-get install mitmproxy
+      else
+        error "Error: mitmproxy is required"
+        exit 1
+      fi
+    fi
+
     info "Starting mitmproxy with options: $mitmproxy_ssl_insecure_option SSLKeyFile: $ssl_key_log_file USER: $USER_USERNAME"
-    start_mitmproxy $USER_USERNAME $ssl_key_log_file $mitmproxy_ssl_insecure_option
+    start_mitmproxy $USER_USERNAME $ssl_key_log_file $mitmproxy_ssl_insecure_option $use_cli_mode $listen_port
     exit 0
     ;;
 

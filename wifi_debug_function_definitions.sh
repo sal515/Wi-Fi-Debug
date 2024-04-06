@@ -285,8 +285,17 @@ start_mitmproxy() {
     shift
     local mitmproxy_ssl_insecure_option=$1
     shift
+    local use_cli=$1
+    shift
+    local listen_port=$1
+    shift
     local mitmproxy_as_root="" # todo fixme better structure to use sudo
-    sudo -u ${username} setsid qterminal -e "bash -c '$mitmproxy_as_root SSLKEYLOGFILE=$ssl_key_log_file mitmproxy $mitmproxy_ssl_insecure_option; exec bash'" &
+
+    if [ "$use_cli" = "true" ]; then
+        mitmproxy --listen-port $listen_port
+    else
+        sudo -u ${username} setsid qterminal -e "bash -c '$mitmproxy_as_root SSLKEYLOGFILE=$ssl_key_log_file mitmproxy $mitmproxy_ssl_insecure_option; exec bash'" &
+    fi
 }
 
 start_ssh_service() {
