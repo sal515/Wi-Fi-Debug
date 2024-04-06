@@ -30,6 +30,9 @@ fi
 SSLKEYLOGFILE=$USER_HOME/Desktop/ssl_key_log.log
 
 info "Script executed as $USER_USERNAME and USER_HOME=$USER_HOME"
+RPI_SHARE="rpi_share"
+PATH_TO_RPI_SHARE_DIR=$USER_HOME/"$RPI_SHARE"
+
 debug "SSL Key log file path set to $SSLKEYLOGFILE"
 
 while [ "$#" -gt 0 ]; do
@@ -249,16 +252,13 @@ while [ "$#" -gt 0 ]; do
     # In windows add a mapped drive as \\<IP address of RPI>\<shared_dir_name>
     # Example: \\192.168.2.246\rpi_share
     shift
-    rpi_share="rpi_share"
-    path_to_rpi_share_dir=$USER_HOME/"$rpi_share"
-    if [ ! -d "$path_to_rpi_share_dir" ]; then
-      mkdir $path_to_rpi_share_dir
-      sudo chmod 0777 $path_to_rpi_share_dir
+    if [ ! -d "$PATH_TO_RPI_SHARE_DIR" ]; then
+      mkdir $PATH_TO_RPI_SHARE_DIR
+      sudo chmod 0777 $PATH_TO_RPI_SHARE_DIR
     fi
-
     samba_conf_path="/etc/samba/smb.conf"
 
-    info "Setting up the Samba file share for the directory: $path_to_rpi_share_dir"
+    info "Setting up the Samba file share for the directory: $PATH_TO_RPI_SHARE_DIR"
     dpkg -l | grep -qw samba || {
       error "Samba is not installed, installing..."
       sudo apt update && sudo apt install -y samba
@@ -278,8 +278,8 @@ while [ "$#" -gt 0 ]; do
       info "'$comment_out_conf_line' - value was not found or could not be updated - please review $samba_conf_path" && exit 1
     fi
 
-    grep -q "\[${rpi_share}\]" $samba_conf_path ||
-      echo -e "\n\n[${rpi_share}]\n   path = ${path_to_rpi_share_dir}\n   writeable = yes\n   create mask = 0777\n   directory mask = 0777\n   public = no\n   guest ok = no\n   valid users = "$USER_USERNAME"" |
+    grep -q "\[${RPI_SHARE}\]" $samba_conf_path ||
+      echo -e "\n\n[${RPI_SHARE}]\n   path = ${PATH_TO_RPI_SHARE_DIR}\n   writeable = yes\n   create mask = 0777\n   directory mask = 0777\n   public = no\n   guest ok = no\n   valid users = "$USER_USERNAME"" |
       sudo tee -a $samba_conf_path >/dev/null
     sudo smbpasswd -a $USER_USERNAME
     sudo systemctl restart smbd nmbd
@@ -288,7 +288,7 @@ while [ "$#" -gt 0 ]; do
     # sudo apt update
     # testparam  $samba_conf_path
     # sudo apt install smbclient
-    # smbclient //localhost/"$rpi_share" -U $USER_USERNAME
+    # smbclient //localhost/"$RPI_SHARE" -U $USER_USERNAME
     ;;
 
     # TODO FIXME: Set the priority of the connections (wlan0 vs eth0 or others)
