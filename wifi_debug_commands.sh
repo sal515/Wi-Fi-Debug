@@ -64,6 +64,58 @@ while [ "$#" -gt 0 ]; do
     exit 0
     ;;
 
+  -mitmp-revp | --mitmproxy-reverseproxy-start)
+    # Example usage: wifidbg -mitmp-revp 8888 192.168.0.232 5003 "insecure"
+    # NOTE: The client needs to trust the mitmproxy certificate: ~/.mitmproxy/mitmproxy-ca-cert.pem
+    # NOTE: The mitmproxy does not need to be provided with the Upstream server certificate if "--ssl-insecure" is used;
+    #       This skips SSL verification of the upstream server
+    # Instructions: How to use this cmd and mitmproxy in reverse proxy mode for HTTPs to decrypt TLS packets:
+    # 1. Install the ~/.mitmproxy/mitmproxy-ca-cert.pem certificate on the Client
+    # 2. Set the Destination IP Port in the Client towards the mitmproxy reverse proxy
+    # 3. Start the mitmproxy in reverse proxy mode using this command, an example is provided above
+    # 3.a. The mitmproxy will listen on the specified port and forward the traffic from the client to the destination IP and Port of the Upstream Server
+    # 3.b. The mitmproxy will store the SSL session keys to the ssl_key_log_file that can be eventually used by Wireshark to decrypt the TLS packets
+    # 4. If the upstream server is a dev server, start the server
+    # 5. Start Wireshark packet capture after setting the tls.keylog_file to the ssl_key_log_file [can be done from preferences]
+    #    Capture with tshark on RPI and pipe to Wireshark Windows:
+    #    ssh -i "C:\Users\<usr>\.ssh\private_key_gen_with_sshkeygen" -p <Port> <usr>@<ip> "sudo tshark -i wlan<X> -w - -f 'not port 22'" | "C:\Program Files\Wireshark\Wireshark.exe" -k -i -
+    #    Wireshark Display filter to ignore 802.11 packets: !(_ws.col.protocol == "802.11")
+    # 6. Start the client and send the request to the mitmproxy reverse proxy
+    # 7. Wireshark will be able to decrypt the TLS packet after the capture session is stored as pcapng and reopened for the decryption to run
+    #    Ref: Client request "c define" example: [The following RAW HTTPs request was sent from client using socket]
+    #                        #define DATA "GET / HTTP/1.1\r\n" \
+    #                                "Host: 192.168.0.232:8888\r\n" \
+    #                                "Content-Type: text/plain\r\n" \
+    #                                "Content-Length: 5\r\n" \
+    #                                "\r\n" \
+    #                                "hello"
+    shift
+    listen_port=${1:-"8888"}
+    dst_ip_address="$2"
+    dst_port=$3
+    [ "$4" = "insecure" ] && mitmproxy_ssl_insecure_option="--ssl-insecure" ||
+      mitmproxy_ssl_insecure_option=${1:-""}
+    ssl_key_log_file=${5:-$SSLKEYLOGFILE}
+    debug "mitmproxy_ssl_insecure_option: $mitmproxy_ssl_insecure_option, dst_ip_address: $dst_ip_address, dst_port: $dst_port, ssl_key_log_file: $ssl_key_log_file"
+
+    if ! which mitmproxy >/dev/null; then
+      read -p "mitmproxy is not installed. Do you want to install it? (y/n) " -n 1 -r
+      if [[ $REPLY =~ ^[Yy]$ ]]; then
+        sudo apt-get install mitmproxy
+      else
+        error "Error: mitmproxy is required"
+        exit 1
+      fi
+    fi
+    # Exporting the SSL Session Key to a file, to be used for TLS application data decryption
+    export SSLKEYLOGFILE=$ssl_key_log_file
+    info "Verify the SSLKEYLOGFILE env variable is set"
+    env | grep "SSLKEYLOGFILE"
+    sleep 2
+    mitmproxy -v --listen-port $listen_port --mode reverse:https://$dst_ip_address:$dst_port $mitmproxy_ssl_insecure_option
+    exit 0
+    ;;
+
   -ssh | --ssh-start)
     # Example usage: wifidbg -ssh-start
     shift
