@@ -244,6 +244,49 @@ while [ "$#" -gt 0 ]; do
     nmcli d status
     ;;
 
+  -rpi-samba-setup | --rpi-samba-file-share-setup)
+    # Example usage: wifidbg -rpi-samba-setup
+    shift
+    rpi_share="rpi_share"
+    path_to_rpi_share_dir=$USER_HOME/"$rpi_share"
+    if [ ! -d "$path_to_rpi_share_dir" ]; then
+      mkdir $path_to_rpi_share_dir
+      sudo chmod 0777 $path_to_rpi_share_dir
+    fi
+
+    info "Setting up the Samba file share for the directory: $path_to_rpi_share_dir"
+    dpkg -l | grep -qw samba || {
+      error "Samba is not installed, installing..."
+      sudo apt update && sudo apt install -y samba
+    }
+    dpkg -l | grep -qw samba-common-bin || {
+      error "samba-common-bin is not installed, installing..."
+      sudo apt update && sudo apt install -y samba-common-bin
+    }
+
+    if grep -q "^[\t ]*map to guest = bad user" /etc/samba/smb.conf; then
+      sudo sed -i '/^[\t ]*map to guest = bad user/s/^/#/' /etc/samba/smb.conf
+      info "The line 'map to guest = bad user' has been commented out."
+    elif grep -q "^#[\t ]*map to guest = bad user" /etc/samba/smb.conf; then
+      info "The line 'map to guest = bad user' is already commented out."
+    else
+      info "'map to guest = bad user' - value was not found or could not be updated - please review /etc/samba/smb.conf" && exit 1
+    fi
+
+    # grep -q "\[${rpi_share}\]" test_samba_config_append || echo -e "\n\n[${rpi_share}]\npath = ${path_to_rpi_share_dir}\nwriteable = Yes\ncreate mask = 0777\ndirectory mask = 0777\npublic = no" | sudo tee -a test_samba_config_append >/dev/null
+    # grep -q "\[${rpi_share}\]" /etc/samba/smb.conf || echo -e "\n\n[${rpi_share}]\n   path = ${path_to_rpi_share_dir}\n   writeable = Yes\n   create mask = 0777\n   directory mask = 0777\n   public = no" | sudo tee -a /etc/samba/smb.conf >/dev/null
+    grep -q "\[${rpi_share}\]" /etc/samba/smb.conf || echo -e "\n\n[${rpi_share}]\n   path = ${path_to_rpi_share_dir}\n   writeable = yes\n   create mask = 0777\n   directory mask = 0777\n   public = no\n   guest ok = no\n   valid users = "$USER_USERNAME"" | sudo tee -a /etc/samba/smb.conf >/dev/null
+
+    sudo smbpasswd -a $USER_USERNAME
+    sudo systemctl restart smbd nmbd
+
+    # Test - Samba with localhost
+    # sudo apt update
+    # testparam  /etc/samba/smb.conf
+    # sudo apt install smbclient
+    # smbclient //localhost/"$rpi_share" -U $USER_USERNAME
+    ;;
+
     # TODO FIXME: Set the priority of the connections (wlan0 vs eth0 or others)
     # Show the connection available
     # nmcli c show
