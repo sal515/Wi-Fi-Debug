@@ -246,6 +246,8 @@ while [ "$#" -gt 0 ]; do
 
   -rpi-samba-setup | --rpi-samba-file-share-setup)
     # Example usage: wifidbg -rpi-samba-setup
+    # In windows add a mapped drive as \\<IP address of RPI>\<shared_dir_name>
+    # Example: \\192.168.2.246\rpi_share
     shift
     rpi_share="rpi_share"
     path_to_rpi_share_dir=$USER_HOME/"$rpi_share"
