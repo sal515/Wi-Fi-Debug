@@ -1,16 +1,23 @@
-# Wifi Debug Project
+# WiFi Debug Project
 
-# Hardware
+---
+
+## Warnings
+
+1. **Disconnect the external USB WiFi adapter** before powering on the Raspberry Pi for the **first time**
+   > To prevent applying the `OS Customization SSID settings` to the external adapter instead of the built-in RPi adapter.  
+   > This applies if the goal is to use the external adapter in monitor mode instead of SSID connection.  
+   > There are solution if the external adapter is connected during the first boot, but it is more complex.
+
+## Hardware
 
 1. Raspberry Pi with Power Supply - Tested with RPi 4B
 2. (Optional) External USB WiFi adapter such as Alfa AWUS036AXML,
-   if the internal wifi adapter is not capable of monitor mode
+   if the internal WiFi adapter is not capable of monitor mode
 
-# Tools
+## Tools on Host Machine
 
-1.  Linux OS installed on Raspberry Pi that supports the external USB WiFi adapter
-    (e.g., Raspberry Pi OS, Ubuntu, etc.)
-2.  vscode [download link](https://code.visualstudio.com/download) with recommended plugins:
+1.  vscode [download link](https://code.visualstudio.com/download) with recommended plugins:
 
     1. C/C++ & C/C++ Extension Pack
     2. Python & Python Debugger & Pylint & Pylance & isort (from Microsoft)
@@ -22,13 +29,21 @@
     8. Prettier - Code formatter
     9. GitLens
 
-3.  git
+2.  Wireshark
 
-# General RPI Setup
+## Tools on RPi
+
+1.  Linux OS installed on Raspberry Pi that supports the external USB WiFi adapter
+    (e.g., Raspberry Pi OS, Ubuntu, etc.)
+2.  git
+3.  airodump-ng
+4.  tshark
+
+## Setup WiFi Debugging and Capture in Monitor Mode with RPi
 
 1.  Install RPi OS on the Raspberry Pi with the **External USB WiFi adapter Disconnected**
 
-    Raspberry Pi Imager with OS Customization tool can be used to install the OS on the RPI:  
+    Raspberry Pi Imager with OS Customization tool can be used to install the OS on the RPi:  
     [Link](https://www.raspberrypi.com/software/)
 
     For headless setup use the **OS Customization tool** to provide the following:
@@ -41,9 +56,9 @@
     ![rpi_imager_os_customization_tool_page_1](https://www.raspberrypi.com/documentation/computers/images/imager/os-customisation-general.png)
     ![rpi_imager_os_customization_tool_page_2](https://www.raspberrypi.com/documentation/computers/images/imager/os-customisation-services.png)
 
-2.  Find the IP address of the RPI using the router's admin page or other methods
+2.  Find the IP address of the RPi using the router's admin page or other methods
 
-3.  SSH into the RPI using vscode with the IP address of RPi  
+3.  SSH into the RPi using vscode with the IP address of RPi  
     SSH with vscode tutorial [here](https://code.visualstudio.com/docs/remote/ssh-tutorial)
 
     ![SSH Option button in vscode](https://code.visualstudio.com/assets/docs/remote/ssh-tutorial/remote-status-bar.png)
@@ -62,7 +77,7 @@
     (Optional) Update ~/.bashrc or ~/.profile to include GitHub ssh keys
 
     ```
-        # Geneate SSH keys on the RPI
+        # Geneate SSH keys on the RPi
         ssh-keygen -t ed25519 "salman@email.com"
         # Add the generated ~/.ssh/<name>.pub to the GitHub SSH Keys list
 
@@ -93,7 +108,7 @@
 
         > Windows 10 command from terminal: `ssh-keygen`
 
-    2.  Add the public key to the RPI's `~/.ssh/authorized_keys` and enable ssh pub key usage using the following command:
+    2.  Add the public key to the RPi's `~/.ssh/authorized_keys` and enable ssh pub key usage using the following command:
 
         ```
            rpidbg -rpi-ssh-key "<ssh public key>"
@@ -116,9 +131,70 @@
 
     4.  To test the remote connection can be closed and reopened without password prompt
 
-# How to use the wifi_debug_rpi_commands.sh script
+9.  If the goal is to capture frequently in monitor mode
 
-# USB WiFi Adapter Info
+    1.  Connect RPi over ethernet
+    2.  Find the **IP address** of the **RPi over Ethernet**  
+        At this point the RPi will have 2 different IP from the DHCP of the Router  
+        One with wlanX interface and another with the Ethernet interface
+    3.  SSH into the RPi over Ethernet
+    4.  Find the wlanX that was used prior for the SSH connection and disable it using nmcli
+
+        ```
+        nmcli d status
+        rpidbg -rpi-wlan-discon wlanX
+        ```
+
+    5.  At this time this needs to be done on every reboot of the RPi with ethernet connected
+    6.  TODO FIXME Add the disable command to bashrc so on every reboot with ethernet connected the wlanX is disabled automatically
+
+10. Set the external or internal WiFi adapter in monitor and set the channel to capture packets
+
+    1. Find the external adapter interface name (eg. wlan1)
+
+       ```
+           nmcli d status
+           readlink -f /sys/class/net/wlanX/device
+       ```
+
+       ![Identified the external adapter interface name to be wlan1 using the commands above, the external adapter will show usb in the path output](./resources/identify_wlan_interface_for_monitor_mode_and_channel_set.png)
+
+    2. Run the following commands to set the external adapter in monitor mode and set the channel to the SSID pattern provided
+
+       ```
+       rpidbg -rpi-wlan-set-mon-ch "wlanX" "ssid_regex_pattern_or_ssid_name"
+       ```
+
+       > Note: This also installs `airodump-ng` & `tshark` if not already installed
+
+11. If `TLS Decryption` is required, samba can be setup to share the SSLKEYLOGFILE easily with Host machine's Wireshark
+
+    > We will be using the Host machine's Wireshark installation to view the tshark data shared over ssh to the Host
+
+    1. Execute the following to `install and setup samba` on RPi, the shared directory will be `~/rpi_share`
+
+       ```
+       rpidbg -rpi-samba-setup
+       ```
+
+    2. Execute `ifconfig` or `ip a` on the RPi to find the Ethernet IP address of the RPi
+    3. On Host machine create a drive map to the shared samba directory of RPi
+
+       ```
+       \\<rpi_ethernet_ip>\rpi_share
+       ```
+
+       > Note: This is the directory where the `SSLKEYLOGFILE=ssl_key_log.log` will be stored when using Mitmproxy`
+
+    4. On Host machine, set the Wireshark to use the `\\<rpi_ethernet_ip>\rpi_share\ssl_key_log.log` from the shared directory
+
+       ```
+       Edit -> Preferences -> Protocols -> TLS -> (Pre)-Master-Secret log filename -> `\\<rpi_ethernet_ip>\rpi_share\ssl_key_log.log`
+       ```
+
+       > Example: `Z:\ssl_key_log.log`F
+
+## USB WiFi Adapter Info
 
 1. Alfa AWUS036AXML [Link](https://www.alfa.com.tw/products/awus036axml?variant=39754360684616)
    - Chipset: MediaTek MT7921AUN
