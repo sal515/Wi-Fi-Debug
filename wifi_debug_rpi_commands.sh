@@ -40,7 +40,7 @@ debug "SSL Key log file path set to $SSLKEYLOGFILE"
 while [ "$#" -gt 0 ]; do
     case "$1" in
     -rpi-ssh-key | --rpi-ssh-key-set)
-        # Example usage: wifidbg -rpi-ssh-key-set "SSH_PUBLIC_KEY"
+        # Example usage: rpidbg -rpi-ssh-key-set "SSH_PUBLIC_KEY"
         shift
         ssh_public_key="$1"
         [ -z "$ssh_public_key" ] && error "Error: SSH public key is empty" && exit 1
@@ -50,13 +50,13 @@ while [ "$#" -gt 0 ]; do
         ;;
 
     -rpi-wlan-conn-info | --rpi-show-wlan-connection-related_info_show)
-        # Example usage: wifidbg -rpi-wlan-conn-info
+        # Example usage: rpidbg -rpi-wlan-conn-info
         shift
         rpi_wlan_interface_info
         ;;
 
     -rpi-wlan-set-mon-ch | --rpi-wlan-set-monitor-mode-and-channel)
-        # Example usage: wifidbg -rpi-wlan-set-mon-ch "wlan1" "tp.*link"
+        # Example usage: rpidbg -rpi-wlan-set-mon-ch "wlan1" "tp.*link"
         shift
         wlan_interface=$1
         shift
@@ -91,7 +91,7 @@ while [ "$#" -gt 0 ]; do
         ;;
 
     -rpi-wlan-discon | --rpi-wlan-disconnect)
-        # Example usage: wifidbg -rpi-wlan-disconnect "wlan1"
+        # Example usage: rpidbg -rpi-wlan-disconnect "wlan0"
         shift
         wlan_interface=$1
         [ -z "$wlan_interface" ] && error "Error: WLAN interface is empty" && exit 1
@@ -103,7 +103,7 @@ while [ "$#" -gt 0 ]; do
         ;;
 
     -rpi-samba-setup | --rpi-samba-file-share-setup)
-        # Example usage: wifidbg -rpi-samba-setup
+        # Example usage: rpidbg -rpi-samba-setup
         # In windows add a mapped drive as \\<IP address of RPI>\<shared_dir_name>
         # Example: \\192.168.2.246\rpi_share
         shift
