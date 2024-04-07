@@ -350,10 +350,11 @@ setup_ssh_pub_key_usage_and_append_pub_ssh_key() {
     if grep -Fq "$ssh_public_key" "$ssh_authorized_keys_filepath"; then
         echo "The SSH public key already exists in the authorized_keys file"
     else
-        echo "The SSH public key does not exist in the authorized_keys file"
+        echo "The SSH public key does not exist in the authorized_keys file, adding it now..."
         echo "$ssh_public_key" >>$ssh_authorized_keys_filepath
 
     fi
+
     sudo systemctl restart ssh
 
     #debug
