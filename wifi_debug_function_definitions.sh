@@ -409,3 +409,109 @@ rpi_wlan_interface_info() {
     info "--->ifconfig<---" $BLUE
     ifconfig
 }
+
+get_system_version_info() {
+    # Get the OS version info
+    os_version_info=$(lsb_release -a)
+    info "OS Version Info: $os_version_info" $RED
+    # Get the kernel version info
+    kernel_version_info=$(uname -a)
+    info "Kernel Version Info: $kernel_version_info" $RED
+    # Get the CPU info
+    cpu_info=$(lscpu)
+    info "CPU Info: $cpu_info" $RED
+    # Get the memory info
+    memory_info=$(free -h)
+    info "Memory Info: $memory_info" $RED
+    # Get the disk info
+    disk_info=$(df -h)
+    info "Disk Info: $disk_info" $RED
+    # Get the network info
+    network_info=$(ip a)
+    info "Network Info: $network_info" $RED
+    # Get the wireless network info
+    wireless_network_info=$(iwconfig)
+    info "Wireless Network Info: $wireless_network_info" $RED
+    # Get the USB devices info
+    usb_devices_info=$(lsusb)
+    info "USB Devices Info: $usb_devices_info" $RED
+    # Get the PCI devices info
+    pci_devices_info=$(lspci)
+    info "PCI Devices Info: $pci_devices_info" $RED
+    # Get the block devices info
+    block_devices_info=$(lsblk)
+    info "Block Devices Info: $block_devices_info" $RED
+    # Get the mounted devices info
+    mounted_devices_info=$(mount)
+    info "Mounted Devices Info: $mounted_devices_info" $RED
+    # Get the system logs
+    system_logs=$(dmesg)
+    info "System Logs: $system_logs" $RED
+    # Get the system services info
+    system_services_info=$(systemctl list-units --type=service)
+    info "System Services Info: $system_services_info" $RED
+    # Get the system processes info
+    system_processes_info=$(ps -aux)
+    info "System Processes Info: $system_processes_info" $RED
+    # Get the system users info
+    system_users_info=$(w)
+    info "System Users Info: $system_users_info" $RED
+    # Get the system groups info
+    system_groups_info=$(cat /etc/group)
+    info "System Groups Info: $system_groups_info" $RED
+    # Get the system environment variables info
+    system_env_vars_info=$(env)
+    info "System Environment Variables Info: $system_env_vars_info" $RED
+    # Get the system configuration files info
+    system_config_files_info=$(ls /etc)
+    info "System Configuration Files Info: $system_config_files_info" $RED
+    # Get the system network configuration files info
+    system_network_config_files_info=$(ls /etc/network)
+    info "System Network Configuration Files Info: $system_network_config_files_info" $RED
+    # Get the system network interfaces info
+    system_network_interfaces_info=$(ip a)
+    info "System Network Interfaces Info: $system_network_interfaces_info" $RED
+    # Get the system network routes info
+    system_network_routes_info=$(ip r)
+    info "System Network Routes Info: $system_network_routes_info" $RED
+    # Get the system network ARP info
+    system_network_arp_info=$(arp -a)
+    info "System Network ARP Info: $system_network_arp_info" $RED
+    # Get the system network DNS info
+    system_network_dns_info=$(cat /etc/resolv.conf)
+    info "System Network DNS Info: $system_network_dns_info" $RED
+    # Get the system network hosts info
+    system_network_hosts_info=$(cat /etc/hosts)
+    info "System Network Hosts Info: $system_network_hosts_info" $RED
+    # Get the system network services info
+    system_network_services_info=$(cat /etc/services)
+    info "System Network Services Info: $system_network_services_info" $RED
+    # Get the system network firewall info
+    system_network_firewall_info=$(iptables -L)
+    info "System Network Firewall Info: $system_network_firewall_info" $RED
+    # Get the system network proxy info
+    system_network_proxy_info=$(cat /etc/proxychains.conf)
+    info "System Network Proxy Info: $system_network_proxy_info" $RED
+    # Get the system network VPN info
+    system_network_vpn_info=$(cat /etc/openvpn/*.conf)
+    info "System Network VPN Info: $system_network_vpn_info" $RED
+    # Get the system network SSH info
+    system_network_ssh_info=$(cat /etc/ssh/sshd_config)
+    info "System Network SSH Info: $system_network_ssh_info" $RED
+    # Get the system network SSL info
+    system_network_ssl_info=$(cat /etc/ssl/openssl.cnf)
+    info "System Network SSL Info: $system_network_ssl_info" $RED
+    # Get the system network TLS info
+    system_network_tls_info=$(cat /etc/ssl/openssl.cnf)
+    info "System Network TLS Info: $system_network_tls_info" $RED
+    # Get the system network WPA info
+    system_network_wpa_info=$(cat /etc/wpa_supplicant/wpa_supplicant.conf)
+    info "System Network WPA Info: $system_network_wpa_info" $RED
+    # Get the system network Bluetooth info
+    system_network_bluetooth_info=$(hciconfig)
+    info "System Network Bluetooth Info: $system_network_bluetooth_info" $RED
+    # Get the system network Zigbee info
+    system_network_zigbee_info=$(cat /etc/zigbee2mqtt/configuration.yaml)
+    info "System Network Zigbee Info: $system_network_zigbee_info" $RED
+
+}
