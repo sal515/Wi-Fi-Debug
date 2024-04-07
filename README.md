@@ -192,7 +192,23 @@
        Edit -> Preferences -> Protocols -> TLS -> (Pre)-Master-Secret log filename -> `\\<rpi_ethernet_ip>\rpi_share\ssl_key_log.log`
        ```
 
-       > Example: `Z:\ssl_key_log.log`F
+       > Example: `Z:\ssl_key_log.log`
+
+12. Start Host's Wireshark to view the packets captured by RPi external adapter using tshark and transported over SSH to Host in Real-Time
+
+    > Windows 10 Command Line Terminal (cmd terminal only not PowerShell):
+
+    ```
+        ssh -i "C:\Users\<usr>\.ssh\<ssh_key>" -p <if port forwarding is used otherwise ignore -p> <rpi_username>@<rpi_ip> "sudo tshark -i wlan1 -w - -f 'not port 22'" | "C:\Program Files\Wireshark\Wireshark.exe" -k -i -
+    ```
+
+    > The 802.11 packets are also captured on monitor mode and can be hidden with the following display filter in wireshark:  
+    >  `!(_ws.col.protocol == "802.11")`
+
+    ![Wireshark TLS Decryption Configuration](./resources/hide_802_11_packets_when_not_the_focus_of_test.png)
+
+    > Note: `'not port 22'` is a capture filter that ignores the default ssh port 22 packets
+
 
 ## USB WiFi Adapter Info
 
