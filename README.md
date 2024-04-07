@@ -51,7 +51,12 @@
 
 4. Install git:
    `sudo apt-get install git`
-5. Clone or download this repository from GitHub:
+
+5. Set up the git user name and email:  
+   `git config --global user.name "Your Name"`  
+   `git config --global user.email "Your Email"`
+
+6. Clone or download this repository from GitHub:
    `git clone git@github.com:sal515/Wi-Fi-Debug.git`
 
    (Optional) Update ~/.bashrc or ~/.profile to include GitHub ssh keys
@@ -71,7 +76,7 @@
 
    ```
 
-6.
+7.
 
 # How to use the wifi_debug_rpi_commands.sh script
 
