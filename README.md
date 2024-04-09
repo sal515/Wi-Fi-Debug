@@ -167,34 +167,15 @@
 
        > Note: This also installs `airodump-ng` & `tshark` if not already installed
 
-11. If `TLS Decryption` is required, samba can be setup to share the SSLKEYLOGFILE easily with Host machine's Wireshark
+11. Start Host's Wireshark to view the packets captured by RPi external adapter using tshark and transported over SSH to Host in Real-Time
 
-    > We will be using the Host machine's Wireshark installation to view the tshark data shared over ssh to the Host
+    > Set the **IEEE 802.11** `wpa-pwd` key in Wireshark and ensure `EAOPL` packets are captured when Client joins the SSID to decrypt the TCP or UDP/IP packets. Described here: [Link](https://wiki.wireshark.org/HowToDecrypt802.11)
 
-    1. Execute the following to `install and setup samba` on RPi, the shared directory will be `~/rpi_share`
+    ```
+        Edit->Preferences->Protocols->IEEE 802.11->Edit->wpa-pwd-><SSID_PASSWORD>
+    ```
 
-       ```
-       rpidbg -rpi-samba-setup
-       ```
-
-    2. Execute `ifconfig` or `ip a` on the RPi to find the Ethernet IP address of the RPi
-    3. On Host machine create a drive map to the shared samba directory of RPi
-
-       ```
-       \\<rpi_ethernet_ip>\rpi_share
-       ```
-
-       > Note: This is the directory where the `SSLKEYLOGFILE=ssl_key_log.log` will be stored when using Mitmproxy`
-
-    4. On Host machine, set the Wireshark to use the `\\<rpi_ethernet_ip>\rpi_share\ssl_key_log.log` from the shared directory
-
-       ```
-       Edit -> Preferences -> Protocols -> TLS -> (Pre)-Master-Secret log filename -> `\\<rpi_ethernet_ip>\rpi_share\ssl_key_log.log`
-       ```
-
-       > Example: `Z:\ssl_key_log.log`
-
-12. Start Host's Wireshark to view the packets captured by RPi external adapter using tshark and transported over SSH to Host in Real-Time
+    ![IEEE 802.11 decryption keys in Wireshark](https://wiki.wireshark.org/uploads/__moin_import__/attachments/HowToDecrypt802.11/IEEE-80211-Preferences.png)
 
     > Windows 10 Command Line Terminal (cmd terminal only not PowerShell):
 
@@ -209,6 +190,58 @@
 
     > Note: `'not port 22'` is a capture filter that ignores the default ssh port 22 packets
 
+12. To **decrypt the TLS Layer of the captured packets**, the Client request needs to be passed through a `Mitmproxy` to the Destiantion Server. The Mitmproxy will export the SSL/TLS keys to a log file which can be used by Wireshark to decrypt the TLS packets.
+
+    For **proxy unaware** clients such as SiWx917, the following steps can be used:
+
+    1. Start Mitmproxy in reverse proxy mode, [description of reverse proxy by Mitmproxy](https://docs.mitmproxy.org/stable/concepts-modes/#reverse-proxy)
+
+    ```
+        wifidbg -mitmp-revp <listen_port> <dst_ip> <dst_port> "insecure"
+    ```
+
+    > "insecure" uses the `--ssl-insecure` option of Mitmproxy to ignore the Destination Server's certificate validation
+
+    ![mitmproxy modes of operation](https://docs.mitmproxy.org/stable/schematics/proxy-modes-flowchart.png)
+
+    2. Client has to **trust the Mitmproxy ca certificate** which is typically found in path `~/.Mitmproxy/mitmproxy-ca-cert.pem`
+    3. Client will then send the request to the Mitmproxy instead of the Destination Server
+       Mitmproxy will forward the request to the Destination server by creating a connection between the Mitmproxy and Destination Server
+    4. During the connection process mitmproxy will export the SSL/TLS session keys to the SSLKEYLOGFILE variable that can be used by Wireshark to decrypt the TLS layer
+       > The SSLKEYLOGFILE path is used by Mitmproxy to export the SSL/TLS keys
+       > The SSLKEYLOGFILE environment variable is set to the path `~/rpi_share/ssl_key_log.log` in the first step
+    5. Once the TLS packets that needs to be decrypted are captured by Wireshark, the **Mitmproxy (reverse proxy) can be closed** so that all the **buffered keys are saved to the SSLKEYLOGFILE**
+    6. Wireshark can then decrypt the TLS packets using the SSLKEYLOGFILE when the **capture file is saved and re-opened**
+    
+
+13. When `TLS Decryption` is required, samba can be setup to share the SSLKEYLOGFILE easily with Host machine's Wireshark
+
+    > As we are using the Host machine's Wireshark installation to view the tshark data shared over ssh to the Host
+
+    1. Execute the following to `install and setup samba` on RPi, the shared directory will be `~/rpi_share`
+
+       ```
+       rpidbg -rpi-samba-setup
+       ```
+
+    2. Execute `ifconfig` or `ip a` on the RPi to find the Ethernet IP address of the RPi
+    3. On Host machine create a drive map to the shared samba directory of RPi
+
+       ```
+       \\<rpi_ethernet_ip>\rpi_share
+       ```
+
+       > Note: This is the directory where the `SSLKEYLOGFILE=~/rpi_share/ssl_key_log.log` will be stored when using Mitmproxy`
+
+    4. On Host machine, set the Wireshark to use the `\\<rpi_ethernet_ip>\rpi_share\ssl_key_log.log` from the shared directory
+
+       > **Important**: This `ssl_key_log.log` file will be created only if a `mitmproxy` is used to export the SSL keys as described [here](https://docs.mitmproxy.org/stable/howto-wireshark-tls/)
+
+       ```
+       Edit -> Preferences -> Protocols -> TLS -> (Pre)-Master-Secret log filename -> `\\<rpi_ethernet_ip>\rpi_share\ssl_key_log.log`
+       ```
+
+       > Example: `Z:\ssl_key_log.log`
 
 ## USB WiFi Adapter Info
 
