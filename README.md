@@ -212,7 +212,6 @@
        > The SSLKEYLOGFILE environment variable is set to the path `~/rpi_share/ssl_key_log.log` in the first step
     5. Once the TLS packets that needs to be decrypted are captured by Wireshark, the **Mitmproxy (reverse proxy) can be closed** so that all the **buffered keys are saved to the SSLKEYLOGFILE**
     6. Wireshark can then decrypt the TLS packets using the SSLKEYLOGFILE when the **capture file is saved and re-opened**
-    
 
 13. When `TLS Decryption` is required, samba can be setup to share the SSLKEYLOGFILE easily with Host machine's Wireshark
 
@@ -230,6 +229,9 @@
        ```
        \\<rpi_ethernet_ip>\rpi_share
        ```
+
+       > Create mapping from Windows 10 cmd terminal: `net use <drive_letter>: \\<ip_address_rpi>\rpi_share`  
+       > Delete mapping from Windows 10 cmd terminal: `net use <drive_letter>: /delete`
 
        > Note: This is the directory where the `SSLKEYLOGFILE=~/rpi_share/ssl_key_log.log` will be stored when using Mitmproxy`
 
